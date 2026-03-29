@@ -1,0 +1,1580 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>乳房X光攝影檢查報告</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f0f2f5; color: #333; padding: 20px; }
+.container { max-width: 1000px; margin: 0 auto; }
+h1 { text-align: center; margin-bottom: 20px; font-size: 1.4em; color: #1a1a2e; }
+
+.section { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.section-title { font-size: 1.1em; font-weight: 600; margin-bottom: 12px; color: #1a1a2e; border-bottom: 2px solid #e0e0e0; padding-bottom: 6px; }
+
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; }
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+.form-group label { font-size: 0.85em; font-weight: 600; color: #555; }
+.form-group input { padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95em; }
+.form-group input:focus { outline: none; border-color: #4a90d9; box-shadow: 0 0 0 2px rgba(74,144,217,0.2); }
+
+.btn-group { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0; }
+.btn-toggle { padding: 5px 12px; border: 1.5px solid #b0bec5; border-radius: 4px; background: #fff; cursor: pointer; font-size: 0.85em; transition: all 0.15s; user-select: none; }
+.btn-toggle:hover { border-color: #4a90d9; background: #e8f0fe; }
+.btn-toggle.active { background: #4a90d9; color: #fff; border-color: #4a90d9; }
+
+.field-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+.field-label { min-width: 120px; font-size: 0.85em; font-weight: 600; color: #555; }
+.field-row input[type="number"] { width: 80px; padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9em; }
+
+.assoc-item { display: flex; align-items: center; gap: 10px; padding: 6px 0; flex-wrap: wrap; }
+.assoc-item label { font-size: 0.9em; cursor: pointer; }
+.assoc-item input[type="checkbox"] { width: 22px; height: 22px; cursor: pointer; }
+.sub-options { margin-left: 28px; display: none; }
+.sub-options.open { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 0; }
+
+#reportOutput { width: 100%; min-height: 200px; padding: 12px; border: 1px solid #ccc; border-radius: 4px; font-family: "Courier New", monospace; font-size: 0.9em; background: #fafafa; resize: vertical; cursor: pointer; }
+#reportOutput:focus { outline: none; border-color: #4a90d9; }
+
+.actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.btn-action { padding: 12px 36px; border: none; border-radius: 6px; font-size: 1em; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.btn-copy { background: #43a047; color: #fff; }
+.btn-copy:hover { background: #388e3c; }
+
+.status { text-align: center; padding: 8px; font-size: 0.9em; border-radius: 4px; margin-top: 10px; display: none; }
+.status.success { display: block; background: #e8f5e9; color: #2e7d32; }
+.status.error { display: block; background: #ffebee; color: #c62828; }
+
+#othersText { width: 100%; padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9em; resize: vertical; min-height: 40px; }
+
+/* Finding type section header */
+.finding-type-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; margin-bottom: 8px; }
+.finding-type-header span { font-weight: 600; font-size: 0.95em; }
+.btn-add { padding: 5px 14px; border: 1.5px solid #43a047; border-radius: 4px; background: #e8f5e9; color: #2e7d32; cursor: pointer; font-size: 0.85em; font-weight: 600; transition: all 0.15s; user-select: none; }
+.btn-add:hover { background: #43a047; color: #fff; }
+
+/* Finding instance cards */
+.finding-card { border: 1.5px solid #b0bec5; border-radius: 6px; padding: 12px 14px; margin-bottom: 10px; position: relative; background: #fafbfc; }
+.finding-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #e0e0e0; }
+.finding-card-label { font-weight: 600; font-size: 0.9em; color: #1a1a2e; }
+.btn-delete { width: 28px; height: 28px; border: none; border-radius: 4px; background: #ffebee; color: #c62828; cursor: pointer; font-size: 1.1em; font-weight: 700; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.btn-delete:hover { background: #c62828; color: #fff; }
+
+.finding-cards-container { min-height: 0; }
+</style>
+</head>
+<body>
+
+<div class="container">
+<h1>健康署婦女乳房X光攝影檢查服務異常個案報告表</h1>
+
+<!-- Patient Info -->
+<div class="section">
+  <div class="section-title">檢查資訊</div>
+  <div class="form-grid">
+    <div class="form-group"><label>病歷號</label><input type="text" id="patientId"></div>
+    <div class="form-group"><label>姓名</label><input type="text" id="patientName"></div>
+    <div class="form-group"><label>身份證統一編號</label><input type="text" id="nationalId"></div>
+    <div class="form-group"><label>統一證號(外籍)</label><input type="text" id="foreignId"></div>
+    <div class="form-group"><label>出生日期</label><input type="date" id="birthDate"></div>
+    <div class="form-group"><label>攝影日期</label><input type="date" id="examDate"></div>
+    <div class="form-group"><label>醫院名稱</label><input type="text" id="hospital" value="羅東博愛醫院"></div>
+    <div class="form-group"><label>放射科醫師</label>
+      <select id="radiologist" style="padding:6px 10px;border:1px solid #ccc;border-radius:4px;font-size:0.95em;">
+        <option value="邱則誠醫師" selected>邱則誠醫師</option>
+        <option value="游勝嵐醫師">游勝嵐醫師</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- Lesion Selection -->
+<div class="section">
+  <div class="section-title">病灶勾選</div>
+
+  <!-- 1. Mass -->
+  <div class="finding-type-section" id="massSection">
+    <div class="finding-type-header">
+      <span>1. Mass</span>
+      <div class="btn-add" onclick="addFinding('mass')">+ Add Mass</div>
+    </div>
+    <div class="finding-cards-container" id="massCards"></div>
+  </div>
+
+  <!-- 2. Calcifications -->
+  <div class="finding-type-section" id="calcSection">
+    <div class="finding-type-header">
+      <span>2. Calcifications</span>
+      <div class="btn-add" onclick="addFinding('calc')">+ Add Calcifications</div>
+    </div>
+    <div class="finding-cards-container" id="calcCards"></div>
+  </div>
+
+  <!-- 3. Asymmetry -->
+  <div class="finding-type-section" id="asymSection">
+    <div class="finding-type-header">
+      <span>3. Asymmetry</span>
+      <div class="btn-add" onclick="addFinding('asym')">+ Add Asymmetry</div>
+    </div>
+    <div class="finding-cards-container" id="asymCards"></div>
+  </div>
+
+  <!-- 4. Architectural Distortion -->
+  <div class="finding-type-section" id="archSection">
+    <div class="finding-type-header">
+      <span>4. Architectural Distortion</span>
+      <div class="btn-add" onclick="addFinding('arch')">+ Add Arch. Distortion</div>
+    </div>
+    <div class="finding-cards-container" id="archCards"></div>
+  </div>
+
+  <!-- 5-8 Associated Findings -->
+  <div style="margin-top: 12px; border-top: 1px solid #eee; padding-top: 12px;">
+    <div style="font-weight:600; font-size:0.95em; margin-bottom:8px; color:#555;">Associated Findings</div>
+
+    <div class="assoc-item">
+      <input type="checkbox" id="item5Check">
+      <label for="item5Check">5. Thickening or retraction of the skin and/or nipple</label>
+      <div class="btn-group" data-mode="single" data-field="item5-side" style="margin-left:10px;">
+        <div class="btn-toggle" data-value="Rt">Rt.</div>
+        <div class="btn-toggle" data-value="Lt">Lt.</div>
+      </div>
+    </div>
+    <div class="sub-options" id="item5Sub">
+      <span style="font-size:0.85em;color:#555;margin-right:8px;">Specify:</span>
+      <div class="btn-group" data-mode="multi" data-field="item5-detail">
+        <div class="btn-toggle" data-value="skin retraction">Skin retraction</div>
+        <div class="btn-toggle" data-value="nipple retraction">Nipple retraction</div>
+        <div class="btn-toggle" data-value="skin thickening">Skin thickening</div>
+      </div>
+    </div>
+
+    <div class="assoc-item">
+      <input type="checkbox" id="item6Check">
+      <label for="item6Check">6. Dense or enlarged axillary LNs</label>
+      <div class="btn-group" data-mode="single" data-field="item6-side" style="margin-left:10px;">
+        <div class="btn-toggle" data-value="Rt">Rt.</div>
+        <div class="btn-toggle" data-value="Lt">Lt.</div>
+      </div>
+    </div>
+
+    <div class="assoc-item">
+      <input type="checkbox" id="item7Check">
+      <label for="item7Check">7. Dilated lactiferous ducts</label>
+      <div class="btn-group" data-mode="single" data-field="item7-side" style="margin-left:10px;">
+        <div class="btn-toggle" data-value="Rt">Rt.</div>
+        <div class="btn-toggle" data-value="Lt">Lt.</div>
+      </div>
+    </div>
+
+    <div class="assoc-item">
+      <input type="checkbox" id="item8Check">
+      <label for="item8Check">8. Diffuse thickening of the skin and increased density</label>
+      <div class="btn-group" data-mode="single" data-field="item8-side" style="margin-left:10px;">
+        <div class="btn-toggle" data-value="Rt">Rt.</div>
+        <div class="btn-toggle" data-value="Lt">Lt.</div>
+      </div>
+    </div>
+
+    <div class="assoc-item" style="flex-direction:column; align-items:flex-start;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <input type="checkbox" id="item9Check">
+        <label for="item9Check">9. Others</label>
+      </div>
+      <div id="item9Body" style="display:none; width:100%; margin-top:6px; margin-left:28px;">
+        <textarea id="othersText" placeholder="Describe other findings..."></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Generated Report -->
+<div class="section">
+  <div class="section-title">Generated BI-RADS Text Report</div>
+  <textarea id="reportOutput" readonly placeholder="Select findings above to auto-generate the BI-RADS text report..."></textarea>
+  <div class="actions" style="margin-top: 12px;">
+    <button class="btn-action btn-copy" onclick="copyAndFinish()">Copy, Save &amp; Close</button>
+  </div>
+  <div id="statusMsg" class="status"></div>
+</div>
+
+</div>
+
+<script>
+// ===== Configuration =====
+const REPORT_API_URL = './report_api.php';     // office server (relative when deployed)
+const FLASK_API_URL  = 'http://localhost:5001'; // local Flask for PDF generation + SQLite
+const EXAM_NAME      = 'mammography';
+
+// ===== URL Parameter Parsing =====
+function getUrlParams() {
+  const p = new URLSearchParams(window.location.search);
+  return {
+    accessionNumber: p.get('acc') || p.get('accession') || '',
+    patientId:       p.get('pid') || '',
+    patientName:     p.get('pname') || p.get('p_name') || '',
+    examDate:        p.get('examdate') || '',
+    doctorName:      p.get('d_name') || '',
+    doctorId:        p.get('d_id') || '',
+    techName:        p.get('t_name') || '',
+  };
+}
+
+// ===== State Building (for report_api.php) =====
+function buildState() {
+  const findings = collectAllFindings();
+  const formData = collectFormData();
+  const textReport = document.getElementById('reportOutput').value || '';
+  return {
+    source: {
+      accessionNumber: getUrlParams().accessionNumber || '',
+      patientId:       document.getElementById('patientId').value || '',
+      patientName:     document.getElementById('patientName').value || '',
+      nationalId:      document.getElementById('nationalId').value || '',
+      foreignId:       document.getElementById('foreignId').value || '',
+      birthDate:       document.getElementById('birthDate').value || '',
+      examDate:        document.getElementById('examDate').value || '',
+      hospital:        document.getElementById('hospital').value || '',
+      radiologist:     document.getElementById('radiologist').value || '',
+      category:        '0',
+      findings:        findings,
+      formData:        formData,
+    },
+    review: {
+      textReport: textReport,
+    }
+  };
+}
+
+function buildStateFilename() {
+  const params = getUrlParams();
+  const acc = params.accessionNumber;
+  const pid = document.getElementById('patientId').value || '';
+  if (acc && pid) return acc + '_' + pid + '.json';
+  const examDate = document.getElementById('examDate').value || '';
+  return pid + '_' + examDate + '-' + EXAM_NAME.toUpperCase() + '.json';
+}
+
+function buildPdfFilename() {
+  const examDate = document.getElementById('examDate').value || new Date().toISOString().slice(0, 10);
+  const pid = document.getElementById('patientId').value || 'unknown';
+  return examDate + '_' + pid + '_' + EXAM_NAME + '.pdf';
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+// ===== Report API Integration =====
+async function saveToReportApi(pdfBlob) {
+  const stateFilename = buildStateFilename();
+  const pdfFilename = buildPdfFilename();
+  const state = buildState();
+  const payload = {
+    filename:       pdfFilename,
+    state_filename: stateFilename,
+    output_subdir:  '',
+    examname:       EXAM_NAME,
+    state:          state,
+  };
+  if (pdfBlob) {
+    payload.pdf_base64 = await blobToBase64(pdfBlob);
+  }
+  try {
+    const resp = await fetch(REPORT_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const result = await resp.json();
+    if (!result.ok) console.warn('report_api save error:', result.error);
+    return result;
+  } catch (e) {
+    console.warn('report_api not available:', e.message);
+    return null;
+  }
+}
+
+async function saveStateOnly() {
+  const stateFilename = buildStateFilename();
+  const state = buildState();
+  const payload = {
+    state_filename: stateFilename,
+    output_subdir:  '',
+    examname:       EXAM_NAME,
+    state:          state,
+  };
+  try {
+    const resp = await fetch(REPORT_API_URL + '?action=save_state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const result = await resp.json();
+    if (!result.ok) console.warn('report_api save_state error:', result.error);
+    return result;
+  } catch (e) {
+    console.warn('report_api not available:', e.message);
+    return null;
+  }
+}
+
+async function loadFromReportApi(accessionNumber, patientId) {
+  const params = new URLSearchParams({
+    action:           'load',
+    accession_number: accessionNumber,
+    patient_id:       patientId,
+    examname:         EXAM_NAME,
+  });
+  try {
+    const resp = await fetch(REPORT_API_URL + '?' + params.toString());
+    if (resp.status === 404) return null; // no saved state
+    const result = await resp.json();
+    if (result.ok) return result.state;
+    console.warn('report_api load error:', result.error);
+    return null;
+  } catch (e) {
+    console.warn('report_api not available:', e.message);
+    return null;
+  }
+}
+
+// ===== Restore State from Loaded JSON =====
+function restoreState(state) {
+  if (!state) return;
+  const src = state.source || {};
+  const rev = state.review || {};
+
+  // Patient info fields
+  if (src.patientId)   document.getElementById('patientId').value = src.patientId;
+  if (src.patientName) document.getElementById('patientName').value = src.patientName;
+  if (src.nationalId)  document.getElementById('nationalId').value = src.nationalId;
+  if (src.foreignId)   document.getElementById('foreignId').value = src.foreignId;
+  if (src.birthDate)   document.getElementById('birthDate').value = src.birthDate;
+  if (src.examDate)    document.getElementById('examDate').value = src.examDate;
+  if (src.hospital)    document.getElementById('hospital').value = src.hospital;
+  if (src.radiologist) {
+    const sel = document.getElementById('radiologist');
+    for (let i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].value === src.radiologist) { sel.selectedIndex = i; break; }
+    }
+  }
+
+  // Restore findings
+  const findings = src.findings || (src.formData && src.formData.findings) || [];
+  findings.forEach(f => {
+    const type = f.type;
+    if (!type) return;
+    // Add a finding card
+    addFinding(type);
+    const cards = document.querySelectorAll(`.finding-card[data-type="${type}"]`);
+    const card = cards[cards.length - 1]; // last added
+    const prefix = card.dataset.instanceId;
+
+    // Set toggle button values
+    setToggle(card, prefix + '-side', f.side);
+    setToggleMulti(card, prefix + '-quadrant', f.quadrant);
+    setToggle(card, prefix + '-hemisphere', f.hemisphere);
+    setToggle(card, prefix + '-depth', f.depth);
+    setInputValue(prefix + '-distance', f.distance);
+
+    if (type === 'mass') {
+      setInputValue(prefix + '-size', f.size);
+      setToggle(card, prefix + '-shape', f.shape);
+      setToggle(card, prefix + '-margin', f.margin);
+      setToggle(card, prefix + '-density', f.density);
+    } else if (type === 'calc') {
+      setToggle(card, prefix + '-distribution', f.distribution);
+      setToggle(card, prefix + '-morphology', f.morphology);
+    } else if (type === 'asym') {
+      setToggle(card, prefix + '-type', f.asymType);
+    }
+  });
+
+  // Restore associated findings
+  const fd = src.formData || {};
+  restoreAssocItem('item5', fd);
+  restoreAssocItem('item6', fd);
+  restoreAssocItem('item7', fd);
+  restoreAssocItem('item8', fd);
+  if (fd['item9-enabled']) {
+    document.getElementById('item9Check').checked = true;
+    document.getElementById('othersText').value = fd['item9-text'] || '';
+    const subOpts = document.getElementById('item9Check').closest('.assoc-item').querySelector('.sub-options');
+    if (subOpts) subOpts.classList.add('open');
+  }
+
+  // Restore associated finding detail sub-options for item 5
+  if (fd['item5-detail']) {
+    const details = Array.isArray(fd['item5-detail']) ? fd['item5-detail'] : [fd['item5-detail']];
+    const container = document.querySelector('[data-field="item5-detail"]');
+    if (container) {
+      details.forEach(val => {
+        container.querySelectorAll('.btn-toggle').forEach(btn => {
+          if (btn.dataset.value === val) btn.classList.add('active');
+        });
+      });
+    }
+  }
+
+  // Restore text report
+  if (rev.textReport) {
+    document.getElementById('reportOutput').value = rev.textReport;
+  } else {
+    generateReport();
+  }
+}
+
+function setToggle(card, fieldName, value) {
+  if (!value) return;
+  const group = card.querySelector(`[data-field="${fieldName}"]`);
+  if (!group) return;
+  group.querySelectorAll('.btn-toggle').forEach(btn => {
+    if (btn.dataset.value === value) btn.classList.add('active');
+    else btn.classList.remove('active');
+  });
+}
+
+function setToggleMulti(card, fieldName, values) {
+  if (!values) return;
+  const arr = Array.isArray(values) ? values : [values];
+  const group = card.querySelector(`[data-field="${fieldName}"]`);
+  if (!group) return;
+  group.querySelectorAll('.btn-toggle').forEach(btn => {
+    if (arr.includes(btn.dataset.value)) btn.classList.add('active');
+  });
+}
+
+function setInputValue(id, value) {
+  if (!value) return;
+  const el = document.getElementById(id);
+  if (el) el.value = value;
+}
+
+function restoreAssocItem(itemName, fd) {
+  if (!fd[itemName + '-enabled']) return;
+  const checkbox = document.getElementById(itemName + 'Check');
+  if (!checkbox) return;
+  checkbox.checked = true;
+  const subOpts = checkbox.closest('.assoc-item').querySelector('.sub-options');
+  if (subOpts) subOpts.classList.add('open');
+  const side = fd[itemName + '-side'];
+  if (side) {
+    const sideGroup = subOpts ? subOpts.querySelector(`[data-field="${itemName}-side"]`) : null;
+    if (sideGroup) {
+      sideGroup.querySelectorAll('.btn-toggle').forEach(btn => {
+        if (btn.dataset.value === side) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+    }
+  }
+}
+
+// ===== Init from URL params + auto-load =====
+async function initFromUrlParams() {
+  const params = getUrlParams();
+  // Pre-fill patient info from URL params
+  if (params.patientId)   document.getElementById('patientId').value = params.patientId;
+  if (params.patientName) document.getElementById('patientName').value = params.patientName;
+  if (params.examDate) {
+    // Convert YYYY.MM.DD to YYYY-MM-DD for date input
+    const normalized = params.examDate.replace(/\./g, '-');
+    document.getElementById('examDate').value = normalized;
+  }
+  if (params.doctorName) {
+    const sel = document.getElementById('radiologist');
+    for (let i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].value === params.doctorName) { sel.selectedIndex = i; break; }
+    }
+  }
+
+  // Auto-load existing state if accession + pid present
+  if (params.accessionNumber && params.patientId) {
+    const state = await loadFromReportApi(params.accessionNumber, params.patientId);
+    if (state) {
+      restoreState(state);
+      showStatus('Loaded existing report.', 'success');
+    }
+    // URL pname overrides loaded state (per API-2.md spec)
+    if (params.patientName) document.getElementById('patientName').value = params.patientName;
+  }
+}
+
+// ===== Finding Instance Management =====
+const findingCounters = { mass: 0, calc: 0, asym: 0, arch: 0 };
+
+const findingTypeLabels = {
+  mass: 'Mass',
+  calc: 'Calcifications',
+  asym: 'Asymmetry',
+  arch: 'Architectural Distortion'
+};
+
+// Templates defining fields for each type
+function buildMassFields(prefix) {
+  return `
+    <div class="field-row">
+      <span class="field-label">Side</span>
+      <div class="btn-group" data-mode="single" data-field="${prefix}-side">
+        <div class="btn-toggle" data-value="Rt">Rt.</div>
+        <div class="btn-toggle" data-value="Lt">Lt.</div>
+        <div class="btn-toggle" data-value="Multiple, Unilateral">Multiple, Unilateral</div>
+        <div class="btn-toggle" data-value="Multiple, Bilateral">Multiple, Bilateral</div>
+      </div>
+    </div>
+    <div class="field-row">
+      <span class="field-label">Quadrant</span>
+      <div class="btn-group" data-mode="multi" data-field="${prefix}-quadrant">
+        <div class="btn-toggle" data-value="UOQ">UOQ</div>
+        <div class="btn-toggle" data-value="UIQ">UIQ</div>
+        <div class="btn-toggle" data-value="LOQ">LOQ</div>
+        <div class="btn-toggle" data-value="LIQ">LIQ</div>
+        <div class="btn-toggle" data-value="Subareolar">Subareolar</div>
+        <div class="btn-toggle" data-value="Axillary tail">Axillary tail</div>
+      </div>
+    </div>
+    <div class="field-row">
+      <span class="field-label">One view only</span>
+      <div class="btn-group" data-mode="single" data-field="${prefix}-hemisphere">
+        <div class="btn-toggle" data-value="Upper Hemisphere">Upper Hemisphere</div>
+        <div class="btn-toggle" data-value="Lower Hemisphere">Lower Hemisphere</div>
+        <div class="btn-toggle" data-value="Outer Hemisphere">Outer Hemisphere</div>
+        <div class="btn-toggle" data-value="Inner Hemisphere">Inner Hemisphere</div>
+      </div>
+    </div>
+    <div class="field-row">
+      <span class="field-label">Depth</span>
+      <div class="btn-group" data-mode="single" data-field="${prefix}-depth">
+        <div class="btn-toggle" data-value="anterior third">Anterior third</div>
+        <div class="btn-toggle" data-value="middle third">Middle third</div>
+        <div class="btn-toggle" data-value="posterior third">Posterior third</div>
+      </div>
+    </div>
+    <div class="field-row">
+      <span class="field-label">Distance (cm)</span>
+      <input type="number" data-field="${prefix}-distance" min="0" step="0.1" placeholder="cm">
+      <span style="font-size:0.85em;color:#777;">from nipple</span>
+    </div>
+    <div class="field-row">
+      <span class="field-label">Size (cm)</span>
+      <input type="number" data-field="${prefix}-size" min="0" step="0.1" placeholder="cm">
+    </div>
+    <div class="field-row">
+      <span class="field-label">Shape</span>
+      <div class="btn-group" data-mode="single" data-field="${prefix}-shape">
+        <div class="btn-toggle" data-value="oval">Oval</div>
+        <div class="btn-toggle" data-value="round">Round</div>
+        <div class="btn-toggle" data-value="irregular">Irregular</div>
+      </div>
+    </div>
+    <div class="field-row">
+      <span class="field-label">Margin</span>
+      <div class="btn-group" data-mode="single" data-field="${prefix}-margin">
+        <div class="btn-toggle" data-value="circumscribed">Circumscribed</div>
+        <div class="btn-toggle" data-value="obscured">Obscured</div>
+        <div class="btn-toggle" data-value="microlobulated">Microlobulated</div>
+        <div class="btn-toggle" data-value="indistinct">Indistinct</div>
+        <div class="btn-toggle" data-value="spiculated">Spiculated</div>
+      </div>
+    </div>
+    <div class="field-row">
+      <span class="field-label">Density</span>
+      <div class="btn-group" data-mode="single" data-field="${prefix}-density">
+        <div class="btn-toggle" data-value="high density">High density</div>
+        <div class="btn-toggle" data-value="equal density">Equal density</div>
+        <div class="btn-toggle" data-value="low density">Low density</div>
+        <div class="btn-toggle" data-value="fat-containing">Fat-containing</div>
+      </div>
+    </div>`;
+}
+
+function buildCalcFields(prefix) {
+  return `
+    <div class="field-row">
+      <span class="field-label">Side</span>
+      <div class="btn-group" data-mode="single" data-field="${prefix}-side">
+        <div class="btn-toggle" data-value="Rt">Rt.</div>
+        <div class="btn-toggle" data-value="Lt">Lt.</div>
+        <div class="btn-toggle" data-value="Multiple, Unilateral">Multiple, Unilateral</div>
+        <div class="btn-toggle" data-value="Multiple, Bilateral">Multiple, Bilateral</div>
+      </div>
+    </div>
+    <div class="field-row">
+      <span class="field-label">Quadrant</span>
+      <div class="btn-group" data-mode="multi" data-field="${prefix}-quadrant">
+        <div class="btn-toggle" data-value="UOQ">UOQ</div>
+        <div class="btn-toggle" data-value="UIQ">UIQ</div>
+        <div class="btn-toggle" data-value="LOQ">LOQ</div>
+        <div class="btn-toggle" data-value="LIQ">LIQ</div>
+        <div class="btn-toggle" data-value="Subareolar">Subareolar</div>
+        <div class="btn-toggle" data-value="Axillary tail">Axillary tail</div>
+      </div>
+    </div>
+    <div class="field-row">
+      <span class="field-label">One view only</span>
+      <div class="btn-group" data-mode="single" data-field="${prefix}-hemisphere">
+        <div class="btn-toggle" data-value="Upper Hemisphere">Upper Hemisphere</div>
+        <div class="btn-toggle" data-value="Lower Hemisphere">Lower Hemisphere</div>
+        <div class="btn-toggle" data-value="Outer Hemisphere">Outer Hemisphere</div>
+        <div class="btn-toggle" data-value="Inner Hemisphere">Inner Hemisphere</div>
+      </div>
+    </div>
+    <div class="field-row">
+      <span class="field-label">Depth</span>
+      <div class="btn-group" data-mode="single" data-field="${prefix}-depth">
+        <div class="btn-toggle" data-value="anterior third">Anterior third</div>
+        <div class="btn-toggle" data-value="middle third">Middle third</div>
+        <div class="btn-toggle" data-value="posterior third">Posterior third</div>
+      </div>
+    </div>
+    <div class="field-row">
+      <span class="field-label">Distance (cm)</span>
+      <input type="number" data-field="${prefix}-distance" min="0" step="0.1" placeholder="cm">
+      <span style="font-size:0.85em;color:#777;">from nipple</span>
+    </div>
+    <div class="field-row">
+      <span class="field-label">Distribution</span>
+      <div class="btn-group" data-mode="single" data-field="${prefix}-distribution">
+        <div class="btn-toggle" data-value="grouped">Grouped</div>
+        <div class="btn-toggle" data-value="linear">Linear</div>
+        <div class="btn-toggle" data-value="segmental">Segmental</div>
+        <div class="btn-toggle" data-value="regional">Regional</div>
+        <div class="btn-toggle" data-value="diffuse">Diffuse</div>
+      </div>
+    </div>
+    <div class="field-row">
+      <span class="field-label">Morphology</span>
+      <div class="btn-group" data-mode="single" data-field="${prefix}-morphology">
+        <div class="btn-toggle" data-value="amorphous">Amorphous</div>
+        <div class="btn-toggle" data-value="coarse heterogeneous">Coarse Heterogeneous</div>
+        <div class="btn-toggle" data-value="fine pleomorphic">Fine Pleomorphic</div>
+        <div class="btn-toggle" data-value="fine linear branching">Fine Linear Branching</div>
+        <div class="btn-toggle" data-value="punctate">Punctate</div>
+      </div>
+    </div>`;
+}
+
+function buildAsymFields(prefix) {
+  return `
+    <div class="field-row">
+      <span class="field-label">Side</span>
+      <div class="btn-group" data-mode="single" data-field="${prefix}-side">
+        <div class="btn-toggle" data-value="Rt">Rt.</div>
+        <div class="btn-toggle" data-value="Lt">Lt.</div>
+      </div>
+    </div>
+    <div class="field-row">
+      <span class="field-label">Type</span>
+      <div class="btn-group" data-mode="single" data-field="${prefix}-type">
+        <div class="btn-toggle" data-value="asymmetry">Asymmetry</div>
+        <div class="btn-toggle" data-value="focal asymmetry">Focal asymmetry</div>
+        <div class="btn-toggle" data-value="developing asymmetry">Developing asymmetry</div>
+      </div>
+    </div>
+    <div class="field-row">
+      <span class="field-label">Quadrant</span>
+      <div class="btn-group" data-mode="multi" data-field="${prefix}-quadrant">
+        <div class="btn-toggle" data-value="UOQ">UOQ</div>
+        <div class="btn-toggle" data-value="UIQ">UIQ</div>
+        <div class="btn-toggle" data-value="LOQ">LOQ</div>
+        <div class="btn-toggle" data-value="LIQ">LIQ</div>
+        <div class="btn-toggle" data-value="Subareolar">Subareolar</div>
+        <div class="btn-toggle" data-value="Axillary tail">Axillary tail</div>
+      </div>
+    </div>
+    <div class="field-row">
+      <span class="field-label">One view only</span>
+      <div class="btn-group" data-mode="single" data-field="${prefix}-hemisphere">
+        <div class="btn-toggle" data-value="Upper Hemisphere">Upper Hemisphere</div>
+        <div class="btn-toggle" data-value="Lower Hemisphere">Lower Hemisphere</div>
+        <div class="btn-toggle" data-value="Outer Hemisphere">Outer Hemisphere</div>
+        <div class="btn-toggle" data-value="Inner Hemisphere">Inner Hemisphere</div>
+      </div>
+    </div>
+    <div class="field-row">
+      <span class="field-label">Depth</span>
+      <div class="btn-group" data-mode="single" data-field="${prefix}-depth">
+        <div class="btn-toggle" data-value="anterior third">Anterior third</div>
+        <div class="btn-toggle" data-value="middle third">Middle third</div>
+        <div class="btn-toggle" data-value="posterior third">Posterior third</div>
+      </div>
+    </div>
+    <div class="field-row">
+      <span class="field-label">Distance (cm)</span>
+      <input type="number" data-field="${prefix}-distance" min="0" step="0.1" placeholder="cm">
+      <span style="font-size:0.85em;color:#777;">from nipple</span>
+    </div>`;
+}
+
+function buildArchFields(prefix) {
+  return `
+    <div class="field-row">
+      <span class="field-label">Side</span>
+      <div class="btn-group" data-mode="single" data-field="${prefix}-side">
+        <div class="btn-toggle" data-value="Rt">Rt.</div>
+        <div class="btn-toggle" data-value="Lt">Lt.</div>
+      </div>
+    </div>
+    <div class="field-row">
+      <span class="field-label">Quadrant</span>
+      <div class="btn-group" data-mode="multi" data-field="${prefix}-quadrant">
+        <div class="btn-toggle" data-value="UOQ">UOQ</div>
+        <div class="btn-toggle" data-value="UIQ">UIQ</div>
+        <div class="btn-toggle" data-value="LOQ">LOQ</div>
+        <div class="btn-toggle" data-value="LIQ">LIQ</div>
+        <div class="btn-toggle" data-value="Subareolar">Subareolar</div>
+        <div class="btn-toggle" data-value="Axillary tail">Axillary tail</div>
+      </div>
+    </div>
+    <div class="field-row">
+      <span class="field-label">One view only</span>
+      <div class="btn-group" data-mode="single" data-field="${prefix}-hemisphere">
+        <div class="btn-toggle" data-value="Upper Hemisphere">Upper Hemisphere</div>
+        <div class="btn-toggle" data-value="Lower Hemisphere">Lower Hemisphere</div>
+        <div class="btn-toggle" data-value="Outer Hemisphere">Outer Hemisphere</div>
+        <div class="btn-toggle" data-value="Inner Hemisphere">Inner Hemisphere</div>
+      </div>
+    </div>
+    <div class="field-row">
+      <span class="field-label">Depth</span>
+      <div class="btn-group" data-mode="single" data-field="${prefix}-depth">
+        <div class="btn-toggle" data-value="anterior third">Anterior third</div>
+        <div class="btn-toggle" data-value="middle third">Middle third</div>
+        <div class="btn-toggle" data-value="posterior third">Posterior third</div>
+      </div>
+    </div>
+    <div class="field-row">
+      <span class="field-label">Distance (cm)</span>
+      <input type="number" data-field="${prefix}-distance" min="0" step="0.1" placeholder="cm">
+      <span style="font-size:0.85em;color:#777;">from nipple</span>
+    </div>`;
+}
+
+const fieldBuilders = {
+  mass: buildMassFields,
+  calc: buildCalcFields,
+  asym: buildAsymFields,
+  arch: buildArchFields
+};
+
+function addFinding(type) {
+  const idx = findingCounters[type]++;
+  const instanceId = type + '-' + idx;
+  const container = document.getElementById(type + 'Cards');
+
+  // Count existing cards for display number
+  const existingCards = container.querySelectorAll('.finding-card');
+  const displayNum = existingCards.length + 1;
+
+  const card = document.createElement('div');
+  card.className = 'finding-card';
+  card.id = instanceId;
+  card.dataset.type = type;
+  card.dataset.instanceId = instanceId;
+
+  const prefix = instanceId; // e.g. mass-0, calc-1
+  const label = findingTypeLabels[type];
+
+  card.innerHTML = `
+    <div class="finding-card-header">
+      <span class="finding-card-label">${label} #${displayNum}</span>
+      <button class="btn-delete" onclick="deleteFinding('${instanceId}')" title="Delete">&times;</button>
+    </div>
+    <div class="finding-card-body">
+      ${fieldBuilders[type](prefix)}
+    </div>`;
+
+  container.appendChild(card);
+
+  // Wire up toggle buttons inside this card
+  card.querySelectorAll('.btn-group').forEach(group => {
+    const mode = group.dataset.mode;
+    group.querySelectorAll('.btn-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (mode === 'single') {
+          const wasActive = btn.classList.contains('active');
+          group.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
+          if (!wasActive) btn.classList.add('active');
+        } else {
+          btn.classList.toggle('active');
+        }
+        generateReport();
+      });
+    });
+  });
+
+  // Wire up number inputs
+  card.querySelectorAll('input[type="number"]').forEach(inp => {
+    inp.addEventListener('input', generateReport);
+  });
+
+  generateReport();
+}
+
+function deleteFinding(instanceId) {
+  const card = document.getElementById(instanceId);
+  if (!card) return;
+  const type = card.dataset.type;
+  card.remove();
+  // Renumber remaining cards
+  const container = document.getElementById(type + 'Cards');
+  const cards = container.querySelectorAll('.finding-card');
+  cards.forEach((c, i) => {
+    c.querySelector('.finding-card-label').textContent = findingTypeLabels[type] + ' #' + (i + 1);
+  });
+  generateReport();
+}
+
+// ===== Associated Findings Toggle Logic =====
+// Wire up existing (non-dynamic) btn-groups for associated findings
+document.querySelectorAll('.assoc-item .btn-group, .sub-options .btn-group').forEach(group => {
+  const mode = group.dataset.mode;
+  group.querySelectorAll('.btn-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (mode === 'single') {
+        const wasActive = btn.classList.contains('active');
+        group.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
+        if (!wasActive) btn.classList.add('active');
+      } else {
+        btn.classList.toggle('active');
+      }
+      generateReport();
+    });
+  });
+});
+
+// Item 5 sub-options
+document.getElementById('item5Check').addEventListener('change', function() {
+  document.getElementById('item5Sub').classList.toggle('open', this.checked);
+  generateReport();
+});
+
+// Item 6-8 checkboxes
+['item6Check', 'item7Check', 'item8Check'].forEach(id => {
+  document.getElementById(id).addEventListener('change', generateReport);
+});
+
+// Item 9 text
+document.getElementById('item9Check').addEventListener('change', function() {
+  document.getElementById('item9Body').style.display = this.checked ? 'block' : 'none';
+  generateReport();
+});
+document.getElementById('othersText').addEventListener('input', generateReport);
+
+// Click on report to select all
+document.getElementById('reportOutput').addEventListener('click', function() {
+  this.select();
+});
+
+// ===== Init from URL params (auto-load existing report) =====
+initFromUrlParams();
+
+// ===== Helpers =====
+function getFieldValue(fieldName) {
+  const group = document.querySelector(`[data-field="${fieldName}"]`);
+  if (!group) return null;
+  // If it's an input element (number), return its value
+  if (group.tagName === 'INPUT') return group.value || null;
+  const active = group.querySelectorAll('.btn-toggle.active');
+  if (active.length === 0) return null;
+  if (group.dataset.mode === 'single') return active[0].dataset.value;
+  return Array.from(active).map(b => b.dataset.value);
+}
+
+// Get number input value by data-field attribute
+function getInputValue(fieldName) {
+  const el = document.querySelector(`input[data-field="${fieldName}"]`);
+  return el ? el.value : '';
+}
+
+const quadrantMap = {
+  'UOQ': 'upper outer quadrant',
+  'UIQ': 'upper inner quadrant',
+  'LOQ': 'lower outer quadrant',
+  'LIQ': 'lower inner quadrant',
+  'Subareolar': 'subareolar region',
+  'Axillary tail': 'axillary tail'
+};
+
+function formatQuadrants(quads) {
+  if (!quads) return '';
+  if (!Array.isArray(quads)) quads = [quads];
+  return quads.map(q => quadrantMap[q] || q.toLowerCase()).join(' and ');
+}
+
+function formatSide(side) {
+  if (side === 'Rt') return 'right';
+  if (side === 'Lt') return 'left';
+  return side ? side.toLowerCase() : '';
+}
+
+function sideToBreast(side) {
+  if (side === 'Rt') return 'right breast';
+  if (side === 'Lt') return 'left breast';
+  if (side && side.includes('Bilateral')) return 'bilateral breasts';
+  return '';
+}
+
+function buildLocationStr(quadrants, hemisphere, depth, distance) {
+  let parts = [];
+  if (quadrants) {
+    parts.push('in the ' + formatQuadrants(quadrants));
+  } else if (hemisphere) {
+    parts.push('in the ' + hemisphere.toLowerCase());
+  }
+  if (depth) parts.push('at the ' + depth);
+  if (distance) parts.push('approximately ' + distance + ' cm from the nipple');
+  return parts.join(', ');
+}
+
+// ===== Collect all finding instances =====
+function collectAllFindings() {
+  const findings = [];
+  document.querySelectorAll('.finding-card').forEach(card => {
+    const type = card.dataset.type;
+    const prefix = card.dataset.instanceId;
+    const f = { type: type, instanceId: prefix };
+
+    f.side = getFieldValue(prefix + '-side');
+    f.quadrant = getFieldValue(prefix + '-quadrant');
+    f.hemisphere = getFieldValue(prefix + '-hemisphere');
+    f.depth = getFieldValue(prefix + '-depth');
+    f.distance = getInputValue(prefix + '-distance');
+
+    if (type === 'mass') {
+      f.size = getInputValue(prefix + '-size');
+      f.shape = getFieldValue(prefix + '-shape');
+      f.margin = getFieldValue(prefix + '-margin');
+      f.density = getFieldValue(prefix + '-density');
+    } else if (type === 'calc') {
+      f.distribution = getFieldValue(prefix + '-distribution');
+      f.morphology = getFieldValue(prefix + '-morphology');
+    } else if (type === 'asym') {
+      f.asymType = getFieldValue(prefix + '-type');
+    }
+
+    findings.push(f);
+  });
+  return findings;
+}
+
+// ===== Generate Report (called on every change) =====
+function generateReport() {
+  const lines = [];
+
+  const findings = collectAllFindings();
+  let hasFindings = findings.length > 0;
+  const recommendations = [];
+  const sides = new Set();
+
+  findings.forEach(f => {
+    const type = f.type;
+    const side = f.side;
+    const quadrant = f.quadrant;
+    const hemisphere = f.hemisphere;
+    const depth = f.depth;
+    const distance = f.distance;
+
+    if (type === 'mass') {
+      const sideStr = formatSide(side);
+      if (sideStr) lines.push(sideStr.charAt(0).toUpperCase() + sideStr.slice(1) + ' breast:');
+
+      let desc = [];
+      if (f.size) desc.push(f.size + ' cm');
+      if (f.shape) desc.push(f.shape);
+      if (f.margin) desc.push(f.margin);
+      if (f.density) desc.push(f.density);
+
+      const location = buildLocationStr(quadrant, hemisphere, depth, distance);
+      let sentence = 'A ' + desc.join(', ') + ' mass';
+      if (location) sentence += ' ' + location;
+      sentence += '.';
+      lines.push(sentence);
+      lines.push('');
+
+      const breast = sideToBreast(side);
+      if (breast) {
+        recommendations.push('Spot compression view and ultrasound of the ' + breast);
+        sides.add(side);
+      } else {
+        recommendations.push('Spot compression view and ultrasound');
+      }
+    } else if (type === 'calc') {
+      const sideStr = formatSide(side);
+      if (sideStr && !lines.some(l => l.startsWith(sideStr.charAt(0).toUpperCase() + sideStr.slice(1) + ' breast'))) {
+        lines.push(sideStr.charAt(0).toUpperCase() + sideStr.slice(1) + ' breast:');
+      }
+
+      let desc = '';
+      if (f.morphology) desc += f.morphology.charAt(0).toUpperCase() + f.morphology.slice(1);
+      desc += ' calcifications';
+      if (f.distribution) desc += ' with ' + f.distribution + ' distribution';
+
+      const location = buildLocationStr(quadrant, hemisphere, depth, distance);
+      if (location) desc += ' ' + location;
+      desc += '.';
+      lines.push(desc);
+      lines.push('');
+
+      const breast = sideToBreast(side);
+      if (breast) {
+        recommendations.push('Spot magnification view of the ' + breast);
+        sides.add(side);
+      } else {
+        recommendations.push('Spot magnification view');
+      }
+    } else if (type === 'asym') {
+      const sideStr = formatSide(side);
+      if (sideStr && !lines.some(l => l.startsWith(sideStr.charAt(0).toUpperCase() + sideStr.slice(1) + ' breast'))) {
+        lines.push(sideStr.charAt(0).toUpperCase() + sideStr.slice(1) + ' breast:');
+      }
+
+      let desc = f.asymType ? (f.asymType.charAt(0).toUpperCase() + f.asymType.slice(1)) : 'Asymmetry';
+      const location = buildLocationStr(quadrant, hemisphere, depth, distance);
+      if (location) desc += ' ' + location;
+      desc += '.';
+      lines.push(desc);
+      lines.push('');
+
+      const breast = sideToBreast(side);
+      if (breast) {
+        recommendations.push('Spot compression view and ultrasound of the ' + breast);
+        sides.add(side);
+      } else {
+        recommendations.push('Spot compression view and ultrasound');
+      }
+    } else if (type === 'arch') {
+      const sideStr = formatSide(side);
+      if (sideStr && !lines.some(l => l.startsWith(sideStr.charAt(0).toUpperCase() + sideStr.slice(1) + ' breast'))) {
+        lines.push(sideStr.charAt(0).toUpperCase() + sideStr.slice(1) + ' breast:');
+      }
+
+      let desc = 'Architectural distortion';
+      const location = buildLocationStr(quadrant, hemisphere, depth, distance);
+      if (location) desc += ' ' + location;
+      desc += '.';
+      lines.push(desc);
+      lines.push('');
+
+      const breast = sideToBreast(side);
+      if (breast) {
+        recommendations.push('Spot magnification view of the ' + breast);
+        sides.add(side);
+      } else {
+        recommendations.push('Spot magnification view');
+      }
+    }
+  });
+
+  // Associated Findings
+  const assocFindings = [];
+
+  if (document.getElementById('item5Check').checked) {
+    const details = getFieldValue('item5-detail');
+    const side5 = getFieldValue('item5-side');
+    const sideStr5 = side5 ? formatSide(side5) + ' ' : '';
+    if (details && Array.isArray(details)) {
+      details.forEach(d => assocFindings.push(sideStr5 + d));
+    } else if (details) {
+      assocFindings.push(sideStr5 + details);
+    } else {
+      assocFindings.push(sideStr5 + 'skin/nipple thickening or retraction');
+    }
+  }
+
+  if (document.getElementById('item6Check').checked) {
+    const side6 = getFieldValue('item6-side');
+    assocFindings.push((side6 ? formatSide(side6) + ' ' : '') + 'enlarged axillary lymph node');
+    const breast6 = sideToBreast(side6);
+    if (breast6) {
+      recommendations.push('Ultrasound of the ' + (side6 === 'Rt' ? 'right' : side6 === 'Lt' ? 'left' : '') + ' axilla');
+    } else {
+      recommendations.push('Axillary ultrasound');
+    }
+  }
+
+  if (document.getElementById('item7Check').checked) {
+    const side7 = getFieldValue('item7-side');
+    assocFindings.push((side7 ? formatSide(side7) + ' ' : '') + 'solitary dilated duct');
+  }
+
+  if (document.getElementById('item8Check').checked) {
+    const side8 = getFieldValue('item8-side');
+    assocFindings.push((side8 ? formatSide(side8) + ' ' : '') + 'skin thickening');
+  }
+
+  if (assocFindings.length > 0) {
+    lines.push('Associated findings: ' + assocFindings.join('; ') + '.');
+    lines.push('');
+  }
+
+  // Others
+  if (document.getElementById('item9Check').checked) {
+    const othersText = document.getElementById('othersText').value.trim();
+    if (othersText) {
+      lines.push('Other findings: ' + othersText);
+      lines.push('');
+    }
+  }
+
+  if (!hasFindings && assocFindings.length === 0) {
+    document.getElementById('reportOutput').value = '';
+    return;
+  }
+
+  // Negative lymph node statement when not checked
+  if (!document.getElementById('item6Check').checked) {
+    lines.push('No enlarged lymph nodes are found in the bilateral axilla.');
+    lines.push('');
+  }
+
+  // Assessment - always BI-RADS 0
+  lines.push('ASSESSMENT: BI-RADS 0 - Incomplete.');
+
+  // Build recommendation from collected findings
+  if (recommendations.length > 0) {
+    const uniqueRecs = [...new Set(recommendations)];
+    lines.push('RECOMMENDATION: ' + uniqueRecs.join('; ') + ' are recommended.');
+  } else {
+    lines.push('RECOMMENDATION: Additional imaging evaluation is recommended.');
+  }
+
+  document.getElementById('reportOutput').value = lines.join('\n');
+}
+
+// ===== Copy, Save, PDF, Close =====
+async function copyAndFinish() {
+  const text = document.getElementById('reportOutput').value;
+  if (!text) {
+    showStatus('No report to copy. Select findings first.', 'error');
+    return;
+  }
+
+  // 1. Copy to clipboard
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    document.getElementById('reportOutput').select();
+    document.execCommand('copy');
+  }
+
+  // 2. Save to local SQLite server
+  await saveToServer(text);
+
+  // 3. Generate and download PDF locally
+  const pdfBlob = await downloadPDF();
+
+  // 4. Upload PDF + state JSON to report_api.php (office server)
+  await saveToReportApi(pdfBlob);
+
+  showStatus('Copied, saved & PDF downloaded.', 'success');
+}
+
+// ===== Save to Server =====
+async function saveToServer(textReport) {
+  const formData = collectFormData();
+  const payload = {
+    patient_id: document.getElementById('patientId').value,
+    patient_name: document.getElementById('patientName').value,
+    national_id: document.getElementById('nationalId').value,
+    birth_date: document.getElementById('birthDate').value,
+    exam_date: document.getElementById('examDate').value,
+    hospital: document.getElementById('hospital').value,
+    radiologist: document.getElementById('radiologist').value,
+    category: '0',
+    form_data: formData,
+    text_report: textReport
+  };
+
+  try {
+    const resp = await fetch(FLASK_API_URL + '/api/reports', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    await resp.json();
+  } catch (e) {
+    // Server not running - silent fail
+  }
+}
+
+function collectFormData() {
+  const data = {};
+
+  // Collect all finding instances
+  const findings = collectAllFindings();
+  data.findings = findings;
+
+  // Collect associated findings
+  data['item5-enabled'] = document.getElementById('item5Check').checked;
+  data['item5-side'] = getFieldValue('item5-side');
+  data['item5-detail'] = getFieldValue('item5-detail');
+  data['item6-enabled'] = document.getElementById('item6Check').checked;
+  data['item6-side'] = getFieldValue('item6-side');
+  data['item7-enabled'] = document.getElementById('item7Check').checked;
+  data['item7-side'] = getFieldValue('item7-side');
+  data['item8-enabled'] = document.getElementById('item8Check').checked;
+  data['item8-side'] = getFieldValue('item8-side');
+  data['item9-enabled'] = document.getElementById('item9Check').checked;
+  data['item9-text'] = document.getElementById('othersText').value;
+  data['birth_date'] = document.getElementById('birthDate').value;
+  data['exam_date'] = document.getElementById('examDate').value;
+  data['category'] = '0';
+  return data;
+}
+
+// ===== Status Message =====
+function showStatus(msg, type) {
+  const el = document.getElementById('statusMsg');
+  el.textContent = msg;
+  el.className = 'status ' + type;
+  setTimeout(() => { el.className = 'status'; }, 5000);
+}
+
+// ===== PDF Generation (html2canvas + jsPDF) =====
+function ck(checked) { return checked ? '\u2611' : '\u2610'; }
+
+function buildPdfPatientHeader() {
+  const pid = document.getElementById('patientId').value || '';
+  const pname = document.getElementById('patientName').value || '';
+  const nid = document.getElementById('nationalId').value || '';
+  const fid = document.getElementById('foreignId').value || '';
+  const bdate = document.getElementById('birthDate').value || '';
+  const edate = document.getElementById('examDate').value || '';
+  const hosp = document.getElementById('hospital').value || '';
+  const rad = document.getElementById('radiologist').value || '';
+
+  return `
+  <div style="text-align:right;margin-bottom:2px;">病歷號: <b>${pid}</b></div>
+  <h2 style="text-align:center;font-size:13px;margin:4px 0;">健康署婦女乳房X光攝影檢查服務異常個案報告表</h2>
+
+  <table class="pdf-tbl" style="width:100%;margin-bottom:6px;">
+    <tr style="background:#e0e0e0;"><th colspan="4" style="text-align:left;padding:3px 6px;">檢查資訊</th></tr>
+    <tr>
+      <td style="width:15%;"><b>姓名</b></td><td style="width:35%;">${pname}</td>
+      <td style="width:20%;"><b>身份證統一編號</b></td><td style="width:30%;">${nid}</td>
+    </tr>
+    <tr>
+      <td><b>統一證號(外籍)</b></td><td>${fid}</td>
+      <td><b>出生日期</b></td><td>${bdate}</td>
+    </tr>
+    <tr>
+      <td><b>攝影日期</b></td><td>${edate}</td>
+      <td><b>醫院名稱</b></td><td>${hosp}</td>
+    </tr>
+    <tr>
+      <td><b>放射科醫師</b></td><td colspan="3">${rad}</td>
+    </tr>
+  </table>
+
+  <table class="pdf-tbl" style="width:100%;margin-bottom:6px;">
+    <tr style="background:#e0e0e0;"><th colspan="2" style="text-align:left;padding:3px 6px;">乳房X光攝影陽性結果 (BI-RADS Category)</th></tr>
+    <tr>
+      <td style="padding:3px 6px;">${ck(true)} Category 0: Need additional imaging evaluation</td>
+      <td style="padding:3px 6px;">${ck(false)} Category 3: Probably benign</td>
+    </tr>
+    <tr>
+      <td style="padding:3px 6px;">${ck(false)} Category 4a: Low suspicion for malignancy</td>
+      <td style="padding:3px 6px;">${ck(false)} Category 4b: Moderate suspicion for malignancy</td>
+    </tr>
+    <tr>
+      <td style="padding:3px 6px;">${ck(false)} Category 4c: High suspicion for malignancy</td>
+      <td style="padding:3px 6px;">${ck(false)} Category 5: Highly suggestive of malignancy</td>
+    </tr>
+  </table>
+
+  <table class="pdf-tbl" style="width:100%;margin-bottom:2px;">
+    <tr style="background:#e0e0e0;"><th colspan="2" style="text-align:left;padding:3px 6px;">病灶勾選 <span style="font-weight:normal;font-size:10px;">(如單側多處病灶或兩側皆有病灶，請以不同表單分開呈現)</span></th></tr>
+  </table>`;
+}
+
+function buildPdfAssocFindings() {
+  const d = collectFormData();
+
+  function assocSide(itemNum) {
+    const v = d['item' + itemNum + '-side'] || '';
+    return `${ck(v==='Rt')} Rt. ${ck(v==='Lt')} Lt.`;
+  }
+
+  return `
+  <table class="pdf-tbl" style="width:100%;margin-bottom:4px;">
+    <tr style="background:#f5f5f5;"><td colspan="3" style="padding:3px 6px;"><b>Associated Findings</b></td></tr>
+    <tr>
+      <td style="width:auto;">${ck(d['item5-enabled'])} 5. Thickening or retraction of the skin and/or nipple</td>
+      <td style="width:100px;">${assocSide(5)}</td>
+    </tr>
+    <tr>
+      <td>${ck(d['item6-enabled'])} 6. Dense or enlarged axillary LNs</td>
+      <td>${assocSide(6)}</td>
+    </tr>
+    <tr>
+      <td>${ck(d['item7-enabled'])} 7. Dilated lactiferous ducts</td>
+      <td>${assocSide(7)}</td>
+    </tr>
+    <tr>
+      <td>${ck(d['item8-enabled'])} 8. Diffuse thickening of the skin and increased density</td>
+      <td>${assocSide(8)}</td>
+    </tr>
+    <tr>
+      <td colspan="2">${ck(d['item9-enabled'])} 9. Others: ${d['item9-enabled'] ? (d['item9-text'] || '') : ''}</td>
+    </tr>
+  </table>`;
+}
+
+// Build a single PDF page for one finding - only that finding is "checked", others unchecked
+function buildPdfFormHTMLForFinding(finding) {
+  const allFindings = collectAllFindings();
+
+  // Helper functions scoped with finding data
+  function sideChecks4(f) {
+    if (!f) return `${ck(false)} Rt. ${ck(false)} Lt. ${ck(false)} Multiple Unilateral ${ck(false)} Multiple Bilateral`;
+    const v = f.side || '';
+    return `${ck(v==='Rt')} Rt. ${ck(v==='Lt')} Lt. ${ck(v==='Multiple, Unilateral')} Multiple Unilateral ${ck(v==='Multiple, Bilateral')} Multiple Bilateral`;
+  }
+  function sideChecks2(f) {
+    if (!f) return `${ck(false)} Rt. ${ck(false)} Lt.`;
+    const v = f.side || '';
+    return `${ck(v==='Rt')} Rt. ${ck(v==='Lt')} Lt.`;
+  }
+
+  function locationTableFromFinding(f) {
+    if (!f) {
+      const quads = ['UOQ','UIQ','LOQ','LIQ','Subareolar','Axillary tail'];
+      const hemis = ['Upper Hemisphere','Lower Hemisphere','Outer Hemisphere','Inner Hemisphere'];
+      return quads.map(qq => `${ck(false)} ${qq}`).join('&nbsp;&nbsp;') + '<br>One view only: ' + hemis.map(hh => `${ck(false)} ${hh}`).join('&nbsp;&nbsp;');
+    }
+    const q = f.quadrant || [];
+    const qArr = Array.isArray(q) ? q : (q ? [q] : []);
+    const h = f.hemisphere || '';
+    const quads = ['UOQ','UIQ','LOQ','LIQ','Subareolar','Axillary tail'];
+    const hemis = ['Upper Hemisphere','Lower Hemisphere','Outer Hemisphere','Inner Hemisphere'];
+    const qInline = quads.map(qq => `${ck(qArr.includes(qq))} ${qq}`).join('&nbsp;&nbsp;');
+    const hInline = hemis.map(hh => `${ck(h===hh)} ${hh}`).join('&nbsp;&nbsp;');
+    return qInline + '<br>One view only: ' + hInline;
+  }
+
+  // For this page, only 'finding' is the active one
+  const isMass = finding.type === 'mass';
+  const isCalc = finding.type === 'calc';
+  const isAsym = finding.type === 'asym';
+  const isArch = finding.type === 'arch';
+
+  // Mass data
+  const massF = isMass ? finding : null;
+  const sizeVal = massF ? parseFloat(massF.size) : NaN;
+  let sizeIdx = -1;
+  if (!isNaN(sizeVal)) {
+    if (sizeVal < 1.0) sizeIdx = 0;
+    else if (sizeVal <= 2.0) sizeIdx = 1;
+    else if (sizeVal <= 3.0) sizeIdx = 2;
+    else if (sizeVal <= 4.0) sizeIdx = 3;
+    else sizeIdx = 4;
+  }
+  const sizeCats = ['&lt;1.0cm', '1-2cm', '2-3cm', '3-4cm', '&gt;4cm'];
+
+  const shapeVal = massF ? (massF.shape || '') : '';
+  const shapeOpts = ['Round', 'Oval', 'Lobular', 'Irregular'];
+  function isShapeChecked(s) { return isMass && shapeVal === s.toLowerCase(); }
+
+  const marginVal = massF ? (massF.margin || '') : '';
+  const marginOpts = ['Circumscribed', 'Microlobulated', 'Obscured', 'Indistinct', 'Spiculated'];
+
+  const densityVal = massF ? (massF.density || '') : '';
+  const densityOpts = ['High density', 'Equal density', 'Low-density', 'Fat-containing'];
+  function isDensityChecked(opt) { return isMass && densityVal === opt.toLowerCase(); }
+
+  // Calc data
+  const calcF = isCalc ? finding : null;
+  const morphVal = calcF ? (calcF.morphology || '') : '';
+  const pdfMorphVal = morphVal === 'punctate' ? 'amorphous' : morphVal;
+  const morphOpts = ['Amorphous', 'Coarse Heterogeneous', 'Fine Pleomorphic', 'Fine Linear Branching'];
+
+  const distVal = calcF ? (calcF.distribution || '') : '';
+  const distOpts = ['Grouped', 'Linear', 'Segmental', 'Regional', 'Diffuse'];
+
+  // Asym data
+  const asymF = isAsym ? finding : null;
+  const asymType = asymF ? (asymF.asymType || '') : '';
+  const asymTypes = ['Asymmetry', 'Focal asymmetry', 'Developing asymmetry'];
+
+  let html = buildPdfPatientHeader();
+
+  html += `
+  <!-- 1. Mass -->
+  <table class="pdf-tbl" style="width:100%;margin-bottom:4px;">
+    <tr style="background:#f5f5f5;"><td colspan="2" style="padding:3px 6px;"><b>1. Mass</b></td></tr>
+    <tr><td style="width:80px;"><b>Side</b></td><td>${sideChecks4(massF)}</td></tr>
+    <tr><td><b>Location</b></td><td>${locationTableFromFinding(massF)}</td></tr>
+    <tr><td><b>Size</b></td><td>${sizeCats.map((sc, i) => `${ck(isMass && i===sizeIdx)} ${sc}`).join('&nbsp;&nbsp;')}</td></tr>
+    <tr><td><b>Shape</b></td><td>${shapeOpts.map(s => `${ck(isShapeChecked(s))} ${s}`).join('&nbsp;&nbsp;')}</td></tr>
+    <tr><td><b>Margin</b></td><td>${marginOpts.map(m => `${ck(isMass && marginVal===m.toLowerCase())} ${m}`).join('&nbsp;&nbsp;')}</td></tr>
+    <tr><td><b>Density</b></td><td>${densityOpts.map(dd => `${ck(isMass && isDensityChecked(dd))} ${dd}`).join('&nbsp;&nbsp;')}</td></tr>
+  </table>
+
+  <!-- 2. Calcifications -->
+  <table class="pdf-tbl" style="width:100%;margin-bottom:4px;">
+    <tr style="background:#f5f5f5;"><td colspan="2" style="padding:3px 6px;"><b>2. Calcifications</b></td></tr>
+    <tr><td style="width:80px;"><b>Side</b></td><td>${sideChecks4(calcF)}</td></tr>
+    <tr><td><b>Location</b></td><td>${locationTableFromFinding(calcF)}</td></tr>
+    <tr><td><b>Distribution</b></td><td>${distOpts.map(dd => `${ck(isCalc && distVal===dd.toLowerCase())} ${dd}`).join('&nbsp;&nbsp;')}</td></tr>
+    <tr><td><b>Morphology</b></td><td>${morphOpts.map(m => `${ck(isCalc && pdfMorphVal===m.toLowerCase())} ${m}`).join('&nbsp;&nbsp;')}</td></tr>
+  </table>
+
+  <!-- 3. Asymmetry -->
+  <table class="pdf-tbl" style="width:100%;margin-bottom:4px;">
+    <tr style="background:#f5f5f5;"><td colspan="2" style="padding:3px 6px;"><b>3. Asymmetry</b></td></tr>
+    <tr><td style="width:80px;"><b>Side</b></td><td>${sideChecks2(asymF)}</td></tr>
+    <tr><td><b>Type</b></td><td>${asymTypes.map(t => `${ck(isAsym && asymType===t.toLowerCase())} ${t}`).join('&nbsp;&nbsp;')}</td></tr>
+    <tr><td><b>Location</b></td><td>${locationTableFromFinding(asymF)}</td></tr>
+  </table>
+
+  <!-- 4. Architectural Distortion -->
+  <table class="pdf-tbl" style="width:100%;margin-bottom:4px;">
+    <tr style="background:#f5f5f5;"><td colspan="2" style="padding:3px 6px;"><b>4. Architectural Distortion</b></td></tr>
+    <tr><td style="width:80px;"><b>Side</b></td><td>${sideChecks2(isArch ? finding : null)}</td></tr>
+    <tr><td><b>Location</b></td><td>${locationTableFromFinding(isArch ? finding : null)}</td></tr>
+  </table>`;
+
+  html += buildPdfAssocFindings();
+
+  return html;
+}
+
+// Fallback: build a single page with all findings unchecked (when no findings exist but assoc findings do)
+function buildPdfFormHTMLEmpty() {
+  let html = buildPdfPatientHeader();
+
+  const emptyQuads = ['UOQ','UIQ','LOQ','LIQ','Subareolar','Axillary tail'].map(qq => `${ck(false)} ${qq}`).join('&nbsp;&nbsp;');
+  const emptyHemis = ['Upper Hemisphere','Lower Hemisphere','Outer Hemisphere','Inner Hemisphere'].map(hh => `${ck(false)} ${hh}`).join('&nbsp;&nbsp;');
+  const emptyLoc = emptyQuads + '<br>One view only: ' + emptyHemis;
+  const emptySide4 = `${ck(false)} Rt. ${ck(false)} Lt. ${ck(false)} Multiple Unilateral ${ck(false)} Multiple Bilateral`;
+  const emptySide2 = `${ck(false)} Rt. ${ck(false)} Lt.`;
+  const sizeCats = ['&lt;1.0cm', '1-2cm', '2-3cm', '3-4cm', '&gt;4cm'];
+
+  html += `
+  <table class="pdf-tbl" style="width:100%;margin-bottom:4px;">
+    <tr style="background:#f5f5f5;"><td colspan="2" style="padding:3px 6px;"><b>1. Mass</b></td></tr>
+    <tr><td style="width:80px;"><b>Side</b></td><td>${emptySide4}</td></tr>
+    <tr><td><b>Location</b></td><td>${emptyLoc}</td></tr>
+    <tr><td><b>Size</b></td><td>${sizeCats.map(sc => `${ck(false)} ${sc}`).join('&nbsp;&nbsp;')}</td></tr>
+    <tr><td><b>Shape</b></td><td>${['Round','Oval','Lobular','Irregular'].map(s => `${ck(false)} ${s}`).join('&nbsp;&nbsp;')}</td></tr>
+    <tr><td><b>Margin</b></td><td>${['Circumscribed','Microlobulated','Obscured','Indistinct','Spiculated'].map(m => `${ck(false)} ${m}`).join('&nbsp;&nbsp;')}</td></tr>
+    <tr><td><b>Density</b></td><td>${['High density','Equal density','Low-density','Fat-containing'].map(d => `${ck(false)} ${d}`).join('&nbsp;&nbsp;')}</td></tr>
+  </table>
+
+  <table class="pdf-tbl" style="width:100%;margin-bottom:4px;">
+    <tr style="background:#f5f5f5;"><td colspan="2" style="padding:3px 6px;"><b>2. Calcifications</b></td></tr>
+    <tr><td style="width:80px;"><b>Side</b></td><td>${emptySide4}</td></tr>
+    <tr><td><b>Location</b></td><td>${emptyLoc}</td></tr>
+    <tr><td><b>Distribution</b></td><td>${['Grouped','Linear','Segmental','Regional','Diffuse'].map(d => `${ck(false)} ${d}`).join('&nbsp;&nbsp;')}</td></tr>
+    <tr><td><b>Morphology</b></td><td>${['Amorphous','Coarse Heterogeneous','Fine Pleomorphic','Fine Linear Branching'].map(m => `${ck(false)} ${m}`).join('&nbsp;&nbsp;')}</td></tr>
+  </table>
+
+  <table class="pdf-tbl" style="width:100%;margin-bottom:4px;">
+    <tr style="background:#f5f5f5;"><td colspan="2" style="padding:3px 6px;"><b>3. Asymmetry</b></td></tr>
+    <tr><td style="width:80px;"><b>Side</b></td><td>${emptySide2}</td></tr>
+    <tr><td><b>Type</b></td><td>${['Asymmetry','Focal asymmetry','Developing asymmetry'].map(t => `${ck(false)} ${t}`).join('&nbsp;&nbsp;')}</td></tr>
+    <tr><td><b>Location</b></td><td>${emptyLoc}</td></tr>
+  </table>
+
+  <table class="pdf-tbl" style="width:100%;margin-bottom:4px;">
+    <tr style="background:#f5f5f5;"><td colspan="2" style="padding:3px 6px;"><b>4. Architectural Distortion</b></td></tr>
+    <tr><td style="width:80px;"><b>Side</b></td><td>${emptySide2}</td></tr>
+    <tr><td><b>Location</b></td><td>${emptyLoc}</td></tr>
+  </table>`;
+
+  html += buildPdfAssocFindings();
+  return html;
+}
+
+async function downloadPDF() {
+  const findings = collectAllFindings();
+  const formData = collectFormData();
+  const patId = document.getElementById('patientId').value || 'unknown';
+  const examDt = document.getElementById('examDate').value || new Date().toISOString().slice(0,10);
+
+  const payload = {
+    findings: findings,
+    form_data: formData,
+    national_id: document.getElementById('nationalId').value || '',
+    foreign_id: document.getElementById('foreignId').value || '',
+    patient_name: document.getElementById('patientName').value || '',
+    patient_id: patId,
+    birth_date: document.getElementById('birthDate').value || '',
+    exam_date: examDt,
+    radiologist: document.getElementById('radiologist').value || ''
+  };
+
+  try {
+    const resp = await fetch(FLASK_API_URL + '/api/fill-pdf', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!resp.ok) throw new Error('Server error: ' + resp.status);
+    const blob = await resp.blob();
+
+    // Local download
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'MMReport_' + patId + '_' + examDt + '.pdf';
+    a.click();
+    URL.revokeObjectURL(url);
+
+    return blob; // return for report_api upload
+  } catch (err) {
+    console.error('PDF generation error:', err);
+    showStatus('PDF generation failed. Is the server running? ' + err.message, 'error');
+    return null;
+  }
+}
+</script>
+
+<style>
+#pdfForm {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  display: none;
+  width: 210mm;
+  padding: 10mm 12mm;
+  background: #fff;
+  font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  font-size: 12px;
+  color: #000;
+  line-height: 1.6;
+}
+#pdfForm h2 {
+  font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  font-size: 16px;
+  margin: 0;
+}
+#pdfForm .pdf-tbl {
+  border-collapse: collapse;
+  font-size: 12px;
+  font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+}
+#pdfForm .pdf-tbl td,
+#pdfForm .pdf-tbl th {
+  border: 1px solid #999;
+  padding: 4px 8px;
+  vertical-align: top;
+}
+#pdfForm .pdf-tbl th {
+  font-weight: 700;
+  font-size: 13px;
+}
+</style>
+
+<div id="pdfForm"></div>
+
+</body>
+</html>

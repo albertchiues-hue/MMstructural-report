@@ -1,0 +1,29 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# SQLite database (contains patient data — do not commit)
+mammography_reports.db
+
+# Claude Code internal files
+.claude/
+.remember/
+
+# Word/HTML export artifacts
+mammoscreening1.fld/
+
+# Output folders (generated at runtime)
+mammography_pdf/
+mammography_json/
+mammography_docx/
+ldct_pdf/
+ldct_json/
+ldct_docx/
+ccta_pdf/
+ccta_json/
+ccta_docx/
