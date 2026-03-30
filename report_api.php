@@ -337,41 +337,45 @@ if ((string)($_GET['action'] ?? '') === 'save_state') {
 }
 
 $filename = sanitize_filename((string)($payload['filename'] ?? ''));
-$isPdf = ends_with(strtolower($filename), '.pdf');
-$isDocx = ends_with(strtolower($filename), '.docx');
+// Accept file_base64 (generic), pdf_base64, or docx_base64 — all mean the same thing
+$fileBase64 = (string)($payload['file_base64'] ?? $payload['pdf_base64'] ?? $payload['docx_base64'] ?? '');
+$lowerFilename = strtolower($filename);
+$isDocx = ends_with($lowerFilename, '.docx');
+$isOdt  = ends_with($lowerFilename, '.odt');
+$isPdf  = ends_with($lowerFilename, '.pdf');
 
-if ($filename === '' || (!$isDocx && !$isPdf)) {
-    respond(400, ['ok' => false, 'error' => 'A valid .docx or .pdf filename is required.']);
+if ($filename === '' || (!$isDocx && !$isOdt && !$isPdf)) {
+    respond(400, ['ok' => false, 'error' => 'A valid .docx, .odt, or .pdf filename is required.']);
 }
 
-$fileBase64 = (string)($payload[$isPdf ? 'pdf_base64' : 'docx_base64'] ?? '');
 if ($fileBase64 === '') {
-    respond(400, ['ok' => false, 'error' => ($isPdf ? 'pdf_base64' : 'docx_base64') . ' is required.']);
+    respond(400, ['ok' => false, 'error' => 'file_base64 (or pdf_base64 / docx_base64) is required.']);
 }
 
-$docxBytes = base64_decode($fileBase64, true);
-if ($docxBytes === false) {
-    respond(400, ['ok' => false, 'error' => 'Base64 data is not valid.']);
+$fileBytes = base64_decode($fileBase64, true);
+if ($fileBytes === false) {
+    respond(400, ['ok' => false, 'error' => 'file_base64 is not valid base64.']);
 }
 
-$folderSuffix = $isPdf ? '_pdf' : '_docx';
-$docxRootDir = $baseDir . DIRECTORY_SEPARATOR . $examName . $folderSuffix;
-$docxTargetDir = $subdir === '' ? $docxRootDir : $docxRootDir . DIRECTORY_SEPARATOR . $subdir;
+// PDF → {examname}_pdf/,  DOCX/ODT → {examname}_docx/
+$folderSuffix  = $isPdf ? '_pdf' : '_docx';
+$fileRootDir   = $baseDir . DIRECTORY_SEPARATOR . $examName . $folderSuffix;
+$fileTargetDir = $subdir === '' ? $fileRootDir : $fileRootDir . DIRECTORY_SEPARATOR . $subdir;
 
-if (!is_dir($docxTargetDir) && !@mkdir($docxTargetDir, 0775, true) && !is_dir($docxTargetDir)) {
-    respond(500, ['ok' => false, 'error' => 'Failed to create DOCX target directory.']);
+if (!is_dir($fileTargetDir) && !@mkdir($fileTargetDir, 0775, true) && !is_dir($fileTargetDir)) {
+    respond(500, ['ok' => false, 'error' => 'Failed to create file target directory.']);
 }
 
-$docxPath = build_available_path($docxTargetDir, $filename);
-$docxRelativePath = path_to_relative_url($docxPath, $docxRootDir);
+$filePath         = build_available_path($fileTargetDir, $filename);
+$fileRelativePath = path_to_relative_url($filePath, $fileRootDir);
 
-if (@file_put_contents($docxPath, $docxBytes) === false) {
-    respond(500, ['ok' => false, 'error' => 'Failed to save DOCX file.']);
+if (@file_put_contents($filePath, $fileBytes) === false) {
+    respond(500, ['ok' => false, 'error' => 'Failed to save file.']);
 }
 
 respond(200, [
-    'ok' => true,
-    'saved_path' => $docxPath,
-    'state_path' => $statePath,
-    'download_url' => './docx_files.php?action=download&examname=' . rawurlencode($examName) . '&path=' . rawurlencode($docxRelativePath),
+    'ok'           => true,
+    'saved_path'   => $filePath,
+    'state_path'   => $statePath,
+    'download_url' => './docx_files.php?action=download&examname=' . rawurlencode($examName) . '&path=' . rawurlencode($fileRelativePath),
 ]);

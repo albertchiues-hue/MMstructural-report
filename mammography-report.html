@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>乳房X光攝影檢查報告</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f0f2f5; color: #333; padding: 20px; }
@@ -285,7 +286,7 @@ async function saveToReportApi(pdfBlob) {
     state:          state,
   };
   if (pdfBlob) {
-    payload.pdf_base64 = await blobToBase64(pdfBlob);
+    payload.file_base64 = await blobToBase64(pdfBlob);
   }
   try {
     const resp = await fetch(REPORT_API_URL, {
@@ -1494,45 +1495,171 @@ function buildPdfFormHTMLEmpty() {
   return html;
 }
 
+// ===== Client-side PDF filling (pdf-lib, no Flask needed) =====
+
+function _pdfBuildFieldMap(finding, formData) {
+  const fields = {};
+  const t = finding.type || '';
+  const prefix = { mass:'mass', calc:'calc', asym:'asym', arch:'distort' }[t];
+  if (!prefix) return fields;
+
+  fields[prefix] = true;
+
+  // Side
+  const sideKey = { 'Rt':`${prefix}_rt`, 'Lt':`${prefix}_lt`,
+    'Multiple, Unilateral':`${prefix}_multi_uni`, 'Multiple, Bilateral':`${prefix}_multi_bi` }[finding.side];
+  if (sideKey) fields[sideKey] = true;
+
+  // Quadrant (multi-select)
+  const quadMap = { 'UOQ':'uoq','UIQ':'uiq','LOQ':'loq','LIQ':'liq','Subareolar':'subareolar','Axillary tail':'axillary' };
+  const quads = Array.isArray(finding.quadrant) ? finding.quadrant : (finding.quadrant ? [finding.quadrant] : []);
+  quads.forEach(q => { if (quadMap[q]) fields[`${prefix}_${quadMap[q]}`] = true; });
+
+  // Hemisphere
+  const hemiKey = { 'Upper Hemisphere':'upper','Lower Hemisphere':'lower','Outer Hemisphere':'outer','Inner Hemisphere':'inner' }[finding.hemisphere];
+  if (hemiKey) fields[`${prefix}_${hemiKey}`] = true;
+
+  if (t === 'mass') {
+    const sz = parseFloat(finding.size);
+    if (sz > 0) fields[sz<1?'mass_lt1':sz<=2?'mass_1_2':sz<=3?'mass_2_3':sz<=4?'mass_3_4':'mass_gt4'] = true;
+    const shape = (finding.shape||'').toLowerCase();
+    ['round','oval','lobular','irregular'].forEach(s => { if (shape===s) fields[`mass_${s}`]=true; });
+    const margin = (finding.margin||'').toLowerCase();
+    const mKey = {circumscribed:'mass_circumscribed',microlobulated:'mass_microlobulated',
+      obscured:'mass_obscured',indistinct:'mass_indistinct',spiculated:'mass_spiculated'}[margin];
+    if (mKey) fields[mKey] = true;
+    const density = (finding.density||'').toLowerCase();
+    const dKey = {'high density':'mass_high_density','equal density':'mass_equal_density',
+      'low density':'mass_low_density','fat-containing':'mass_fat_containing'}[density];
+    if (dKey) fields[dKey] = true;
+  } else if (t === 'calc') {
+    const dist = (finding.distribution||'').toLowerCase();
+    const distKey = {grouped:'calc_grouped',linear:'calc_linear',segmental:'calc_segmental',
+      regional:'calc_regional',diffuse:'calc_diffuse'}[dist];
+    if (distKey) fields[distKey] = true;
+    let morph = (finding.morphology||'').toLowerCase();
+    if (morph === 'punctate') morph = 'amorphous';
+    const morphKey = {amorphous:'calc_amorphous','coarse heterogeneous':'calc_coarse',
+      'fine pleomorphic':'calc_fine_pleo','fine linear branching':'calc_fine_linear'}[morph];
+    if (morphKey) fields[morphKey] = true;
+  } else if (t === 'asym') {
+    const at = (finding.asymType||'').toLowerCase();
+    const atKey = {asymmetry:'asym_asymmetry','focal asymmetry':'asym_focal',
+      'developing asymmetry':'asym_developing'}[at];
+    if (atKey) fields[atKey] = true;
+  }
+  return fields;
+}
+
+function _pdfBuildAssocFields(formData) {
+  const fields = {};
+  for (let i = 5; i <= 9; i++) {
+    if (formData[`item${i}-enabled`]) {
+      fields[`item${i}`] = true;
+      const side = formData[`item${i}-side`] || '';
+      if (side === 'Rt')      fields[`item${i}_rt`] = true;
+      else if (side === 'Lt') fields[`item${i}_lt`] = true;
+    }
+  }
+  return fields;
+}
+
+async function _fillOnePdf(finding, formData, patientInfo) {
+  const { PDFDocument, PDFName, PDFHexString, StandardFonts } = PDFLib;
+
+  const resp = await fetch('./mammography_report_form.pdf');
+  if (!resp.ok) throw new Error('Cannot load PDF template (HTTP ' + resp.status + '). Serve the page via a web server.');
+  const pdfDoc = await PDFDocument.load(await resp.arrayBuffer());
+  const form = pdfDoc.getForm();
+
+  // Build field lookup map once
+  const fieldLookup = {};
+  form.getFields().forEach(f => { fieldLookup[f.getName()] = f; });
+
+  // 1. Checkboxes — check() updates /AS to activate the existing On appearance stream
+  const checks = Object.assign({ 'cat_0': true },
+    finding && finding.type ? _pdfBuildFieldMap(finding, formData) : {},
+    _pdfBuildAssocFields(formData));
+
+  for (const [name, on] of Object.entries(checks)) {
+    try { const cb = form.getCheckBox(name); on ? cb.check() : cb.uncheck(); } catch(e) {}
+  }
+
+  // 2. ASCII text fields — setText marks them dirty; updateFieldAppearances generates
+  //    Helvetica appearance streams so they print correctly in all PDF viewers
+  const setAscii = (name, val) => {
+    if (!val || !fieldLookup[name]) return;
+    try { form.getTextField(name).setText(String(val)); } catch(e) {}
+  };
+
+  const [by, bm, bd] = (patientInfo.birthDate || '').split('-');
+  const [ey, em, ed] = (patientInfo.examDate  || '').split('-');
+  setAscii('birth_year',  by); setAscii('birth_month', bm); setAscii('birth_day',  bd);
+  setAscii('exam_year',   ey); setAscii('exam_month',  em); setAscii('exam_day',   ed);
+  setAscii('patient_id_field', patientInfo.patientId);
+  const nid = patientInfo.nationalId || '';
+  const fid = patientInfo.foreignId  || '';
+  for (let i = 0; i < 10 && i < nid.length; i++) setAscii(`id_${i}`,  nid[i]);
+  for (let i = 0; i < 10 && i < fid.length; i++) setAscii(`fid_${i}`, fid[i]);
+
+  // Generate appearance streams for dirty ASCII fields using Helvetica
+  try {
+    const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    form.updateFieldAppearances(helvetica);
+  } catch(e) { console.warn('updateFieldAppearances:', e); }
+
+  // 3. CJK text fields — write /V as PDFHexString (UTF-16BE) AFTER appearance generation.
+  //    No appearance stream is created; Preview.app and Chrome render /V using system CJK fonts.
+  const setCJK = (name, val) => {
+    if (!val || !fieldLookup[name]) return;
+    try { fieldLookup[name].acroField.dict.set(PDFName.of('V'), PDFHexString.fromText(String(val))); } catch(e) {}
+  };
+
+  setCJK('patient_name', patientInfo.patientName);
+  setCJK('radiologist',  patientInfo.radiologist);
+  if (formData['item9-enabled']) setCJK('others_text', formData['item9-text'] || '');
+
+  return pdfDoc.save();
+}
+
 async function downloadPDF() {
   const findings = collectAllFindings();
   const formData = collectFormData();
-  const patId = document.getElementById('patientId').value || 'unknown';
-  const examDt = document.getElementById('examDate').value || new Date().toISOString().slice(0,10);
+  const patId  = document.getElementById('patientId').value  || 'unknown';
+  const examDt = document.getElementById('examDate').value   || new Date().toISOString().slice(0, 10);
 
-  const payload = {
-    findings: findings,
-    form_data: formData,
-    national_id: document.getElementById('nationalId').value || '',
-    foreign_id: document.getElementById('foreignId').value || '',
-    patient_name: document.getElementById('patientName').value || '',
-    patient_id: patId,
-    birth_date: document.getElementById('birthDate').value || '',
-    exam_date: examDt,
-    radiologist: document.getElementById('radiologist').value || ''
+  const patientInfo = {
+    patientName: document.getElementById('patientName').value  || '',
+    patientId:   patId,
+    nationalId:  document.getElementById('nationalId').value   || '',
+    foreignId:   document.getElementById('foreignId').value    || '',
+    birthDate:   document.getElementById('birthDate').value    || '',
+    examDate:    examDt,
+    radiologist: document.getElementById('radiologist').value  || '',
   };
 
+  // One PDF page per finding; if no findings yet, generate a blank form
+  const findingList = findings.length > 0 ? findings : [null];
+  const blobs = [];
+
   try {
-    const resp = await fetch(FLASK_API_URL + '/api/fill-pdf', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if (!resp.ok) throw new Error('Server error: ' + resp.status);
-    const blob = await resp.blob();
+    for (let i = 0; i < findingList.length; i++) {
+      const pdfBytes = await _fillOnePdf(findingList[i], formData, patientInfo);
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      blobs.push(blob);
 
-    // Local download
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'MMReport_' + patId + '_' + examDt + '.pdf';
-    a.click();
-    URL.revokeObjectURL(url);
-
-    return blob; // return for report_api upload
+      const suffix = findingList.length > 1 ? `_${i+1}of${findingList.length}` : '';
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `MMReport_${patId}_${examDt}${suffix}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+    return blobs[0] || null;
   } catch (err) {
     console.error('PDF generation error:', err);
-    showStatus('PDF generation failed. Is the server running? ' + err.message, 'error');
+    showStatus('PDF generation failed: ' + err.message, 'error');
     return null;
   }
 }
