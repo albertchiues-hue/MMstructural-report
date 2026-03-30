@@ -1,2 +1,6 @@
-flask
-flask-cors
+flask>=3.0
+flask-cors>=4.0
+pypdf>=5.0
+reportlab>=4.0
+pdfminer.six>=20221105
+pymupdf>=1.23
