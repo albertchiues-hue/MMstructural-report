@@ -178,18 +178,23 @@ PID_Y = 785.8
 PID_W = 44.0
 PID_H = 12.0
 
-# Date row: fitz y=119.7-152.1 → pm y=689.8-722.2
-# 出生日期 value cell: pm x=70-276.5, y=689.8-722.2
-# 攝影日期 value cell: pm x=360-566.9, y=689.8-722.2
-BIRTH_DATE_X = 71.0
-BIRTH_DATE_Y = 691.0
-BIRTH_DATE_W = 204.0
-BIRTH_DATE_H = 30.0
+# Date row: fitz y=131.8-142.8 → rl y=699.1-710.1
+# Pre-printed 年月日 exact positions (from pdfminer/fitz extraction):
+#   Birth date:  年 x=148.3-159.3,  月 x=176.4-187.5,  日 x=204.6-215.6
+#   Exam  date:  年 x=438.2-449.3,  月 x=466.4-477.4,  日 x=494.5-505.6
+# Three narrow transparent fields per date placed in each blank before 年/月/日
+DATE_FIELD_Y  = 698.0   # bottom of field (chars bottom ≈ 699.1)
+DATE_FIELD_H  = 13.0    # height (chars span 11 pts, add 2 for padding)
 
-EXAM_DATE_X = 361.0
-EXAM_DATE_Y = 691.0
-EXAM_DATE_W = 204.0
-EXAM_DATE_H = 30.0
+# Birth date blanks
+BIRTH_YEAR_X  = 71.0;   BIRTH_YEAR_W  = 76.0   # blank before 年 (starts x=71, 年 starts x=148.3)
+BIRTH_MONTH_X = 160.0;  BIRTH_MONTH_W = 15.0   # blank between 年(ends 159.3) and 月(starts 176.4)
+BIRTH_DAY_X   = 188.0;  BIRTH_DAY_W   = 15.0   # blank between 月(ends 187.5) and 日(starts 204.6)
+
+# Exam date blanks
+EXAM_YEAR_X   = 361.0;  EXAM_YEAR_W   = 76.0   # blank before 年 (starts x=361, 年 starts x=438.2)
+EXAM_MONTH_X  = 450.0;  EXAM_MONTH_W  = 15.0   # blank between 年(ends 449.3) and 月(starts 466.4)
+EXAM_DAY_X    = 478.0;  EXAM_DAY_W    = 15.0   # blank between 月(ends 477.4) and 日(starts 494.5)
 
 # 放射科醫師 value cell: fitz y=152.6-184.5 → pm y=657.4-689.3; x=360-567
 RADIOLOGIST_X = 361.0
@@ -295,35 +300,18 @@ def build_overlay():
         textColor=black,
     )
 
-    # ── 出生日期 text field ──
-    form.textfield(
-        name='birth_date',
-        x=BIRTH_DATE_X,
-        y=BIRTH_DATE_Y,
-        width=BIRTH_DATE_W,
-        height=BIRTH_DATE_H,
-        fontSize=10,
-        borderWidth=0,
-        borderColor=None,
-        fillColor=white,
-        forceBorder=False,
-        textColor=black,
-    )
+    # ── 出生日期: three narrow transparent fields in blanks before 年/月/日 ──
+    _date_common = dict(borderWidth=0, borderColor=None, fillColor=None,
+                        forceBorder=False, textColor=black,
+                        y=DATE_FIELD_Y, height=DATE_FIELD_H)
+    form.textfield(name='birth_year',  x=BIRTH_YEAR_X,  width=BIRTH_YEAR_W,  fontSize=10, **_date_common)
+    form.textfield(name='birth_month', x=BIRTH_MONTH_X, width=BIRTH_MONTH_W, fontSize=9,  maxlen=2, **_date_common)
+    form.textfield(name='birth_day',   x=BIRTH_DAY_X,   width=BIRTH_DAY_W,   fontSize=9,  maxlen=2, **_date_common)
 
-    # ── 攝影日期 text field ──
-    form.textfield(
-        name='exam_date',
-        x=EXAM_DATE_X,
-        y=EXAM_DATE_Y,
-        width=EXAM_DATE_W,
-        height=EXAM_DATE_H,
-        fontSize=10,
-        borderWidth=0,
-        borderColor=None,
-        fillColor=white,
-        forceBorder=False,
-        textColor=black,
-    )
+    # ── 攝影日期: three narrow transparent fields in blanks before 年/月/日 ──
+    form.textfield(name='exam_year',   x=EXAM_YEAR_X,   width=EXAM_YEAR_W,   fontSize=10, **_date_common)
+    form.textfield(name='exam_month',  x=EXAM_MONTH_X,  width=EXAM_MONTH_W,  fontSize=9,  maxlen=2, **_date_common)
+    form.textfield(name='exam_day',    x=EXAM_DAY_X,    width=EXAM_DAY_W,    fontSize=9,  maxlen=2, **_date_common)
 
     # ── 放射科醫師 text field ──
     form.textfield(

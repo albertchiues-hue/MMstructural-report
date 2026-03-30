@@ -225,15 +225,15 @@ def build_assoc_fields(form_data):
     return fields
 
 
-def fmt_date(iso_str):
-    """Convert 'YYYY-MM-DD' to 'YYYY年MM月DD日'. Returns '' if invalid."""
+def split_date(iso_str):
+    """Split 'YYYY-MM-DD' into (year, month, day) strings. Returns ('','','') if invalid."""
     if not iso_str:
-        return ''
+        return '', '', ''
     try:
         y, m, d = iso_str.split('-')
-        return f'{y}年{m}月{d}日'
+        return y, m, d
     except Exception:
-        return iso_str
+        return iso_str, '', ''
 
 
 def fill_template_pdf(finding, form_data, national_id='', foreign_id='',
@@ -263,10 +263,15 @@ def fill_template_pdf(finding, form_data, national_id='', foreign_id='',
         field_values['patient_name'] = patient_name
     if patient_id:
         field_values['patient_id_field'] = patient_id
-    if birth_date:
-        field_values['birth_date'] = fmt_date(birth_date)
-    if exam_date:
-        field_values['exam_date'] = fmt_date(exam_date)
+    by, bm, bd = split_date(birth_date)
+    if by: field_values['birth_year']  = by
+    if bm: field_values['birth_month'] = bm
+    if bd: field_values['birth_day']   = bd
+
+    ey, em, ed = split_date(exam_date)
+    if ey: field_values['exam_year']  = ey
+    if em: field_values['exam_month'] = em
+    if ed: field_values['exam_day']   = ed
     if radiologist:
         field_values['radiologist'] = radiologist
 
