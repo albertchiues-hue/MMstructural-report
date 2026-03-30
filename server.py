@@ -263,15 +263,8 @@ def fill_template_pdf(finding, form_data, national_id='', foreign_id='',
         field_values['patient_name'] = patient_name
     if patient_id:
         field_values['patient_id_field'] = patient_id
-    by, bm, bd = split_date(birth_date)
-    if by: field_values['birth_year']  = by
-    if bm: field_values['birth_month'] = bm
-    if bd: field_values['birth_day']   = bd
-
-    ey, em, ed = split_date(exam_date)
-    if ey: field_values['exam_year']  = ey
-    if em: field_values['exam_month'] = em
-    if ed: field_values['exam_day']   = ed
+    # Date fields removed from template — exam date drawn via client-side drawText,
+    # birth date left blank (pre-printed 年月日 shows through).
     if radiologist:
         field_values['radiologist'] = radiologist
 

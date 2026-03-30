@@ -300,18 +300,9 @@ def build_overlay():
         textColor=black,
     )
 
-    # ── 出生日期: three narrow transparent fields in blanks before 年/月/日 ──
-    _date_common = dict(borderWidth=0, borderColor=None, fillColor=None,
-                        forceBorder=False, textColor=black,
-                        y=DATE_FIELD_Y, height=DATE_FIELD_H)
-    form.textfield(name='birth_year',  x=BIRTH_YEAR_X,  width=BIRTH_YEAR_W,  fontSize=10, **_date_common)
-    form.textfield(name='birth_month', x=BIRTH_MONTH_X, width=BIRTH_MONTH_W, fontSize=9,  maxlen=2, **_date_common)
-    form.textfield(name='birth_day',   x=BIRTH_DAY_X,   width=BIRTH_DAY_W,   fontSize=9,  maxlen=2, **_date_common)
-
-    # ── 攝影日期: three narrow transparent fields in blanks before 年/月/日 ──
-    form.textfield(name='exam_year',   x=EXAM_YEAR_X,   width=EXAM_YEAR_W,   fontSize=10, **_date_common)
-    form.textfield(name='exam_month',  x=EXAM_MONTH_X,  width=EXAM_MONTH_W,  fontSize=9,  maxlen=2, **_date_common)
-    form.textfield(name='exam_day',    x=EXAM_DAY_X,    width=EXAM_DAY_W,    fontSize=9,  maxlen=2, **_date_common)
+    # ── Dates: no AcroForm fields — exam date drawn via page.drawText() in client JS.
+    # ── 出生日期: left blank (pre-printed 年月日 in base PDF shows through).
+    # ── 攝影日期: filled by client-side pdf-lib drawText at known coordinates.
 
     # ── 放射科醫師 text field ──
     form.textfield(
