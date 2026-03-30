@@ -163,23 +163,20 @@ field_w3 = half_w - label_w3
 draw_cell(MARGIN_L, y, label_w3, ROW_H, '出生日期', size=11, align='center', bg=LIGHT_GREY)
 draw_cell(MARGIN_L + label_w3, y, field_w3, ROW_H)
 fx = MARGIN_L + label_w3 + 6
-add_textfield(fx, y + 2, 42, ROW_H - 4, 'dob_year', font_size=10)
+# No AcroForm text fields for dates — birth date left blank,
+# exam date filled by client-side pdf-lib drawText.
+# Only draw the 年月日 label characters.
 c.setFont(FONT_NAME, 11)
 c.drawString(fx + 44, y + 6, '年')
-add_textfield(fx + 60, y + 2, 30, ROW_H - 4, 'dob_month', font_size=10)
 c.drawString(fx + 92, y + 6, '月')
-add_textfield(fx + 108, y + 2, 30, ROW_H - 4, 'dob_day', font_size=10)
 c.drawString(fx + 140, y + 6, '日')
 
 draw_cell(MARGIN_L + half_w, y, label_w3, ROW_H, '攝影日期', size=11, align='center', bg=LIGHT_GREY)
 draw_cell(MARGIN_L + half_w + label_w3, y, field_w3, ROW_H)
 fx2 = MARGIN_L + half_w + label_w3 + 6
-add_textfield(fx2, y + 2, 42, ROW_H - 4, 'exam_year', font_size=10)
 c.setFont(FONT_NAME, 11)
 c.drawString(fx2 + 44, y + 6, '年')
-add_textfield(fx2 + 60, y + 2, 30, ROW_H - 4, 'exam_month', font_size=10)
 c.drawString(fx2 + 92, y + 6, '月')
-add_textfield(fx2 + 108, y + 2, 30, ROW_H - 4, 'exam_day', font_size=10)
 c.drawString(fx2 + 140, y + 6, '日')
 
 # Row 4: 醫院名稱 | (field) | 放射科醫師 | (field)
