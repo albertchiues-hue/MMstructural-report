@@ -11,6 +11,8 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.colors import black, white, HexColor
 
 PAGE_W, PAGE_H = A4  # 595.27 x 841.89
+MARGIN_L = 28.0
+CONTENT_W = PAGE_W - 2 * MARGIN_L
 
 BASE_PDF = '/Users/chiutsecheng/MMstructural report/mammography_report_form.pdf'
 OUTPUT   = '/Users/chiutsecheng/MMstructural report/mammography_report_form.pdf'
@@ -204,7 +206,9 @@ RADIOLOGIST_H = 28.0
 
 
 def build_overlay():
-    """Build overlay PDF in memory with all AcroForm fields."""
+    """Build overlay PDF in memory with AcroForm checkboxes only.
+    All text fields removed — filled via page.drawText() in client-side JS.
+    This eliminates the blue-tinted text field widget appearances."""
     buf = io.BytesIO()
     c = Canvas(buf, pagesize=A4)
     form = c.acroForm
@@ -222,102 +226,22 @@ def build_overlay():
             forceBorder=True,
         )
 
-    # ── 身份證統一編號 digit fields ──
-    for i, x in enumerate(DIGIT_XS):
-        form.textfield(
-            name=f'id_{i}',
-            x=x + 1,
-            y=ID_ROW_Y + 1,
-            width=DIGIT_W,
-            height=ID_ROW_H - 2,
-            maxlen=1,
-            fontSize=11,
-            borderWidth=0,
-            borderColor=None,
-            fillColor=None,
-            forceBorder=False,
-            textColor=black,
-        )
+    # ── Cover full-width semicolons "；" after Category 4 subcategories ──
+    # Original text: "a. Low suspicion；", "b. Moderate suspicion；", "c. High suspicion；"
+    # fitz y=257.3-268.3 → pdf y=573.6, height=11
+    c.setFillColor(white)
+    c.rect(139, 573, 13, 12, fill=1, stroke=0)   # cover ； after "a. Low suspicion"
+    c.rect(254, 573, 13, 12, fill=1, stroke=0)   # cover ； after "b. Moderate suspicion"
+    c.rect(353, 573, 13, 12, fill=1, stroke=0)   # cover ； after "c. High suspicion"
+    c.setFillColor(black)
 
-    # ── 統一證號(外籍) digit fields ──
-    for i, x in enumerate(DIGIT_XS):
-        form.textfield(
-            name=f'fid_{i}',
-            x=x + 1,
-            y=FID_ROW_Y + 1,
-            width=DIGIT_W,
-            height=FID_ROW_H - 2,
-            maxlen=1,
-            fontSize=11,
-            borderWidth=0,
-            borderColor=None,
-            fillColor=None,
-            forceBorder=False,
-            textColor=black,
-        )
-
-    # ── 9. Others text field ──
-    form.textfield(
-        name='others_text',
-        x=OTHERS_X,
-        y=OTHERS_Y,
-        width=OTHERS_W,
-        height=OTHERS_H,
-        fontSize=10,
-        borderWidth=0,
-        borderColor=None,
-        fillColor=None,
-        forceBorder=False,
-    )
-
-    # ── 姓名 text field ──
-    form.textfield(
-        name='patient_name',
-        x=NAME_X,
-        y=NAME_Y + 1,
-        width=NAME_W,
-        height=NAME_H - 2,
-        fontSize=10,
-        borderWidth=0,
-        borderColor=None,
-        fillColor=None,
-        forceBorder=False,
-        textColor=black,
-    )
-
-    # ── 病歷號 text field ──
-    form.textfield(
-        name='patient_id_field',
-        x=PID_X,
-        y=PID_Y + 1,
-        width=PID_W,
-        height=PID_H - 2,
-        fontSize=9,
-        borderWidth=0,
-        borderColor=None,
-        fillColor=None,
-        forceBorder=False,
-        textColor=black,
-    )
-
-    # ── Dates: no AcroForm fields — exam date drawn via page.drawText() in client JS.
-    # ── 出生日期: left blank (pre-printed 年月日 in base PDF shows through).
-    # ── 攝影日期: filled by client-side pdf-lib drawText at known coordinates.
-
-    # ── 放射科醫師 text field ──
-    form.textfield(
-        name='radiologist',
-        x=RADIOLOGIST_X,
-        y=RADIOLOGIST_Y,
-        width=RADIOLOGIST_W,
-        height=RADIOLOGIST_H,
-        fontSize=10,
-        borderWidth=0,
-        borderColor=None,
-        fillColor=None,
-        forceBorder=False,
-        textColor=black,
-    )
+    # ── Items 5-9 border box ──
+    # item5 y=115.3 (top item), item9 y=43.5 (bottom item), each ~16pt tall
+    box_top = 115.3 + 11.0 + 2  # item5_y + checkbox_size + padding
+    box_bot = 43.5 - 2           # item9_y - padding
+    c.setStrokeColor(black)
+    c.setLineWidth(0.5)
+    c.rect(MARGIN_L, box_bot, CONTENT_W, box_top - box_bot, fill=0, stroke=1)
 
     c.save()
     buf.seek(0)
@@ -327,6 +251,7 @@ def build_overlay():
 def merge_pdfs(base_path, overlay_buf, output_path):
     """Merge overlay AcroForm fields onto base PDF using pypdf."""
     from pypdf import PdfReader, PdfWriter
+    from pypdf.generic import ArrayObject, NameObject
 
     overlay_buf.seek(0)
     reader_overlay = PdfReader(overlay_buf)
@@ -338,6 +263,26 @@ def merge_pdfs(base_path, overlay_buf, output_path):
 
     # Merge base PDF page content underneath the overlay (transparent form layer)
     writer.pages[0].merge_page(reader_base.pages[0], over=False)
+
+    # Remove base PDF's widget annotations from /Annots.
+    # After merge_page, the page inherits both the overlay's annotations (AcroForm
+    # checkboxes) and the base PDF's widget annotations (text field boxes that cover
+    # content text with white/blue fills). Keep only overlay's AcroForm fields.
+    page_obj = writer.pages[0]
+    acroform = writer._root_object.get('/AcroForm', {})
+    acroform_refs = set()
+    for field_ref in acroform.get('/Fields', []):
+        acroform_refs.add(id(field_ref.get_object()))
+        field_obj = field_ref.get_object()
+        for kid_ref in field_obj.get('/Kids', []):
+            acroform_refs.add(id(kid_ref.get_object()))
+
+    if '/Annots' in page_obj:
+        cleaned = ArrayObject()
+        for annot_ref in page_obj['/Annots']:
+            if id(annot_ref.get_object()) in acroform_refs:
+                cleaned.append(annot_ref)
+        page_obj[NameObject('/Annots')] = cleaned
 
     with open(output_path, 'wb') as f:
         writer.write(f)

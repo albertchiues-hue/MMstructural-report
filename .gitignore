@@ -17,6 +17,15 @@ mammography_reports.db
 # Node.js (pdf-lib testing)
 node_modules/
 package-lock.json
+package.json
+
+# Font subset (extracted for testing; embedded as base64 in HTML)
+SongtiTC-Subset.ttf
+SongtiTC-Regular.ttf
+
+# Sample output
+sample_output.pdf
+generate_sample.js
 
 # Word/HTML export artifacts
 mammoscreening1.fld/
