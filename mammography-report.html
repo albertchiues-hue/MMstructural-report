@@ -1574,7 +1574,7 @@ function _pdfBuildFieldMap(finding, formData) {
   quads.forEach(q => { if (quadMap[q]) fields[`${prefix}_${quadMap[q]}`] = true; });
 
   // Hemisphere
-  const hemiKey = { 'Upper Hemisphere':'upper','Lower Hemisphere':'lower','Outer Hemisphere':'outer','Inner Hemisphere':'inner' }[finding.hemisphere];
+  const hemiKey = { 'Upper Hemisphere':'outer','Lower Hemisphere':'inner','Outer Hemisphere':'upper','Inner Hemisphere':'lower' }[finding.hemisphere];
   if (hemiKey) fields[`${prefix}_${hemiKey}`] = true;
 
   if (t === 'mass') {

@@ -107,8 +107,8 @@ QUAD_MAP = {
     'Subareolar': 'subareolar', 'Axillary tail': 'axillary'
 }
 HEMI_MAP = {
-    'Upper Hemisphere': 'upper', 'Lower Hemisphere': 'lower',
-    'Outer Hemisphere': 'outer', 'Inner Hemisphere': 'inner'
+    'Upper Hemisphere': 'outer', 'Lower Hemisphere': 'inner',
+    'Outer Hemisphere': 'upper', 'Inner Hemisphere': 'lower'
 }
 
 

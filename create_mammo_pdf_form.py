@@ -262,21 +262,21 @@ def draw_location_table(ly, prefix):
     # Left half: Upper Hemisphere + Lower Hemisphere
     left_x = MARGIN_L + label_w
     draw_cell(left_x, ly, half_area_w, loc_row_h)
-    add_checkbox(left_x + 4, ly + 3, f'{prefix}_hem_upper')
+    add_checkbox(left_x + 4, ly + 3, f'{prefix}_upper')
     c.setFont(FONT_NAME, 9)
     c.drawString(left_x + CB_SIZE + 6, ly + loc_row_h / 2 - 3, 'Upper Hemisphere')
     mid_x = left_x + half_area_w / 2
-    add_checkbox(mid_x + 4, ly + 3, f'{prefix}_hem_lower')
+    add_checkbox(mid_x + 4, ly + 3, f'{prefix}_lower')
     c.drawString(mid_x + CB_SIZE + 6, ly + loc_row_h / 2 - 3, 'Lower Hemisphere')
 
     # Right half: Outer Hemisphere + Inner Hemisphere
     right_x = MARGIN_L + label_w + half_area_w
     draw_cell(right_x, ly, half_area_w, loc_row_h)
-    add_checkbox(right_x + 4, ly + 3, f'{prefix}_hem_outer')
+    add_checkbox(right_x + 4, ly + 3, f'{prefix}_outer')
     c.setFont(FONT_NAME, 9)
     c.drawString(right_x + CB_SIZE + 6, ly + loc_row_h / 2 - 3, 'Outer Hemisphere')
     mid_r = right_x + half_area_w / 2
-    add_checkbox(mid_r + 4, ly + 3, f'{prefix}_hem_inner')
+    add_checkbox(mid_r + 4, ly + 3, f'{prefix}_inner')
     c.drawString(mid_r + CB_SIZE + 6, ly + loc_row_h / 2 - 3, 'Inner Hemisphere')
 
     return ly
