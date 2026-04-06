@@ -802,6 +802,7 @@ function addFinding(type) {
   // Wire up toggle buttons inside this card
   card.querySelectorAll('.btn-group').forEach(group => {
     const mode = group.dataset.mode;
+    const field = group.dataset.field || '';
     group.querySelectorAll('.btn-toggle').forEach(btn => {
       btn.addEventListener('click', () => {
         if (mode === 'single') {
@@ -811,6 +812,16 @@ function addFinding(type) {
         } else {
           btn.classList.toggle('active');
         }
+
+        // Quadrant and hemisphere are mutually exclusive
+        if (field.endsWith('-quadrant') && group.querySelectorAll('.btn-toggle.active').length > 0) {
+          const hemiGroup = card.querySelector(`[data-field="${field.replace('-quadrant', '-hemisphere')}"]`);
+          if (hemiGroup) hemiGroup.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
+        } else if (field.endsWith('-hemisphere') && group.querySelectorAll('.btn-toggle.active').length > 0) {
+          const quadGroup = card.querySelector(`[data-field="${field.replace('-hemisphere', '-quadrant')}"]`);
+          if (quadGroup) quadGroup.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
+        }
+
         generateReport();
       });
     });
