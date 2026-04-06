@@ -1006,7 +1006,7 @@ function generateReport() {
 
     if (type === 'mass') {
       const sideStr = formatSide(side);
-      if (sideStr) lines.push('> ' + sideStr.charAt(0).toUpperCase() + sideStr.slice(1) + ' breast:');
+      const breastPrefix = sideStr ? '> ' + sideStr.charAt(0).toUpperCase() + sideStr.slice(1) + ' breast: ' : '> ';
 
       let desc = [];
       if (f.size) desc.push(f.size + ' cm');
@@ -1018,16 +1018,13 @@ function generateReport() {
       let sentence = 'A ' + desc.join(', ') + ' mass';
       if (location) sentence += ' ' + location;
       sentence += '.';
-      lines.push('> ' + sentence);
-      lines.push('');
+      lines.push(breastPrefix + sentence);
 
       recommendations.push('Spot compression view and ultrasound' + recLoc);
       if (side) sides.add(side);
     } else if (type === 'calc') {
       const sideStr = formatSide(side);
-      if (sideStr && !lines.some(l => l.startsWith('> ' + sideStr.charAt(0).toUpperCase() + sideStr.slice(1) + ' breast'))) {
-        lines.push('> ' + sideStr.charAt(0).toUpperCase() + sideStr.slice(1) + ' breast:');
-      }
+      const breastPrefix = sideStr ? '> ' + sideStr.charAt(0).toUpperCase() + sideStr.slice(1) + ' breast: ' : '> ';
 
       let desc = '';
       if (f.morphology) desc += f.morphology.charAt(0).toUpperCase() + f.morphology.slice(1);
@@ -1037,38 +1034,31 @@ function generateReport() {
       const location = buildLocationStr(quadrant, hemisphere, depth, distance);
       if (location) desc += ' ' + location;
       desc += '.';
-      lines.push('> ' + desc);
-      lines.push('');
+      lines.push(breastPrefix + desc);
 
       recommendations.push('Spot magnification views' + recLoc);
       if (side) sides.add(side);
     } else if (type === 'asym') {
       const sideStr = formatSide(side);
-      if (sideStr && !lines.some(l => l.startsWith('> ' + sideStr.charAt(0).toUpperCase() + sideStr.slice(1) + ' breast'))) {
-        lines.push('> ' + sideStr.charAt(0).toUpperCase() + sideStr.slice(1) + ' breast:');
-      }
+      const breastPrefix = sideStr ? '> ' + sideStr.charAt(0).toUpperCase() + sideStr.slice(1) + ' breast: ' : '> ';
 
       let desc = f.asymType ? (f.asymType.charAt(0).toUpperCase() + f.asymType.slice(1)) : 'Asymmetry';
       const location = buildLocationStr(quadrant, hemisphere, depth, distance);
       if (location) desc += ' ' + location;
       desc += '.';
-      lines.push('> ' + desc);
-      lines.push('');
+      lines.push(breastPrefix + desc);
 
       recommendations.push('Spot compression view and ultrasound' + recLoc);
       if (side) sides.add(side);
     } else if (type === 'arch') {
       const sideStr = formatSide(side);
-      if (sideStr && !lines.some(l => l.startsWith('> ' + sideStr.charAt(0).toUpperCase() + sideStr.slice(1) + ' breast'))) {
-        lines.push('> ' + sideStr.charAt(0).toUpperCase() + sideStr.slice(1) + ' breast:');
-      }
+      const breastPrefix = sideStr ? '> ' + sideStr.charAt(0).toUpperCase() + sideStr.slice(1) + ' breast: ' : '> ';
 
       let desc = 'Architectural distortion';
       const location = buildLocationStr(quadrant, hemisphere, depth, distance);
       if (location) desc += ' ' + location;
       desc += '.';
-      lines.push('> ' + desc);
-      lines.push('');
+      lines.push(breastPrefix + desc);
 
       recommendations.push('Spot magnification views' + recLoc);
       if (side) sides.add(side);
@@ -1132,8 +1122,8 @@ function generateReport() {
   if (sides.size === 1) {
     const onlySide = [...sides][0];
     if (onlySide === 'Rt' || onlySide === 'Lt') {
-      const contraBreast = onlySide === 'Rt' ? 'left' : 'right';
-      lines.push('> No abnormal mass, suspicious microcalcifications or architectural distortion are found in the ' + contraBreast + ' breast.');
+      const contraBreast = onlySide === 'Rt' ? 'Left' : 'Right';
+      lines.push('> ' + contraBreast + ' breast: No abnormal mass, suspicious microcalcifications or architectural distortion are found.');
     }
   }
 
