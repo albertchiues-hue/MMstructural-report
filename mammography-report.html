@@ -1113,7 +1113,6 @@ function generateReport() {
 
   if (assocFindings.length > 0) {
     lines.push('> Associated findings: ' + assocFindings.join('; ') + '.');
-    lines.push('');
   }
 
   // Others
@@ -1121,7 +1120,6 @@ function generateReport() {
     const othersText = document.getElementById('othersText').value.trim();
     if (othersText) {
       lines.push('> Other findings: ' + othersText);
-      lines.push('');
     }
   }
 
@@ -1130,13 +1128,22 @@ function generateReport() {
     return;
   }
 
+  // Contralateral breast statement when findings are unilateral
+  if (sides.size === 1) {
+    const onlySide = [...sides][0];
+    if (onlySide === 'Rt' || onlySide === 'Lt') {
+      const contraBreast = onlySide === 'Rt' ? 'left' : 'right';
+      lines.push('> No abnormal mass, suspicious microcalcifications or architectural distortion are found in the ' + contraBreast + ' breast.');
+    }
+  }
+
   // Negative lymph node statement when not checked
   if (!document.getElementById('item6Check').checked) {
     lines.push('> No enlarged lymph nodes are found in the bilateral axilla.');
-    lines.push('');
   }
 
   // Assessment - always BI-RADS 0
+  lines.push('');
   lines.push('> ASSESSMENT: BI-RADS 0 - Incomplete.');
 
   // Build recommendation from collected findings
@@ -1574,7 +1581,7 @@ function _pdfBuildFieldMap(finding, formData) {
   quads.forEach(q => { if (quadMap[q]) fields[`${prefix}_${quadMap[q]}`] = true; });
 
   // Hemisphere
-  const hemiKey = { 'Upper Hemisphere':'upper','Lower Hemisphere':'lower','Outer Hemisphere':'outer','Inner Hemisphere':'inner' }[finding.hemisphere];
+  const hemiKey = { 'Upper Hemisphere':'outer','Lower Hemisphere':'inner','Outer Hemisphere':'upper','Inner Hemisphere':'lower' }[finding.hemisphere];
   if (hemiKey) fields[`${prefix}_${hemiKey}`] = true;
 
   if (t === 'mass') {
