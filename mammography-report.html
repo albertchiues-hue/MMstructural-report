@@ -388,6 +388,12 @@ function restoreState(state) {
     setToggle(card, prefix + '-side', f.side);
     setToggleMulti(card, prefix + '-quadrant', f.quadrant);
     setToggle(card, prefix + '-hemisphere', f.hemisphere);
+    // Keep quadrant and hemisphere mutually exclusive during restore.
+    if (f.hemisphere) {
+      enforceLocationMutualExclusion(card, prefix + '-hemisphere');
+    } else if (f.quadrant) {
+      enforceLocationMutualExclusion(card, prefix + '-quadrant');
+    }
     setToggle(card, prefix + '-depth', f.depth);
     setInputValue(prefix + '-distance', f.distance);
 
@@ -456,6 +462,30 @@ function setToggleMulti(card, fieldName, values) {
   group.querySelectorAll('.btn-toggle').forEach(btn => {
     if (arr.includes(btn.dataset.value)) btn.classList.add('active');
   });
+}
+
+function enforceLocationMutualExclusion(card, changedFieldName) {
+  if (!card || !changedFieldName) return;
+
+  const prefix = card.dataset.instanceId;
+  const quadrantField = `${prefix}-quadrant`;
+  const hemisphereField = `${prefix}-hemisphere`;
+
+  const quadrantGroup = card.querySelector(`[data-field="${quadrantField}"]`);
+  const hemisphereGroup = card.querySelector(`[data-field="${hemisphereField}"]`);
+  if (!quadrantGroup || !hemisphereGroup) return;
+
+  if (changedFieldName === quadrantField) {
+    const hasQuadrant = quadrantGroup.querySelectorAll('.btn-toggle.active').length > 0;
+    if (hasQuadrant) {
+      hemisphereGroup.querySelectorAll('.btn-toggle.active').forEach(btn => btn.classList.remove('active'));
+    }
+  } else if (changedFieldName === hemisphereField) {
+    const hasHemisphere = hemisphereGroup.querySelectorAll('.btn-toggle.active').length > 0;
+    if (hasHemisphere) {
+      quadrantGroup.querySelectorAll('.btn-toggle.active').forEach(btn => btn.classList.remove('active'));
+    }
+  }
 }
 
 function setInputValue(id, value) {
@@ -804,6 +834,7 @@ function addFinding(type) {
     const mode = group.dataset.mode;
     group.querySelectorAll('.btn-toggle').forEach(btn => {
       btn.addEventListener('click', () => {
+        const fieldName = group.dataset.field;
         if (mode === 'single') {
           const wasActive = btn.classList.contains('active');
           group.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
@@ -811,6 +842,7 @@ function addFinding(type) {
         } else {
           btn.classList.toggle('active');
         }
+        enforceLocationMutualExclusion(card, fieldName);
         generateReport();
       });
     });
@@ -1164,6 +1196,7 @@ function validateFindings() {
     if (!get('side'))                              missing.push('Side');
     const hasQuad = (() => { const v = get('quadrant'); return v && (!Array.isArray(v) || v.length > 0); })();
     const hasHemi = !!get('hemisphere');
+    if (hasQuad && hasHemi)                        missing.push('Quadrant and One view only cannot both be selected');
     if (!hasQuad && !hasHemi)                      missing.push('Quadrant or One view only (at least one required)');
     if (!get('depth'))                             missing.push('Depth');
     if (!getNum('distance'))                       missing.push('Distance from nipple');
