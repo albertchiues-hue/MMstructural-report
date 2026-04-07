@@ -1973,92 +1973,46 @@ function _fillOneDocxXml(templateXml, finding, formData, patientInfo, assocItem)
   }
 
   // 5. Fill dates (birth and exam)
+  // Date cell structure: 6 runs in one cell:
+  //   <w:t>民國</w:t> | <w:t>    年  </w:t> | <w:t>   </w:t> | <w:t>月  </w:t> | <w:t>   </w:t> | <w:t>日</w:t>
+  // We replace spaces in the year/month/day placeholder runs.
   _fillDate('出生日期', patientInfo.birthDate);
   _fillDate('攝影日期', patientInfo.examDate);
 
   function _fillDate(label, dateStr) {
     if (!dateStr) return;
-    // dateStr format: YYYY-MM-DD
     const [y, m, d] = dateStr.split('-');
     if (!y) return;
-    // ROC year
     const rocYear = String(parseInt(y) - 1911);
+    const month = m ? String(parseInt(m)) : '';
+    const day = d ? String(parseInt(d)) : '';
+    // Find cell containing 民國 after label
     const labelIdx = xml.indexOf(label);
     if (labelIdx < 0) return;
-    // Find the row containing this label
-    const trStart = xml.lastIndexOf('<w:tr>', labelIdx);
-    const trEnd = xml.indexOf('</w:tr>', labelIdx) + 7;
-    let rowXml = xml.substring(trStart, trEnd);
-
-    // For birth date: fill year after "民國" before "年", month before "月", day before "日"
-    // For exam date: same pattern but in the second half of the row
-    // Identify which occurrence of "民國" to target
-    const isExam = label === '攝影日期';
-    const targetLabel = isExam ? '攝影日期' : '出生日期';
-    const labelInRow = rowXml.indexOf(targetLabel);
-    // Find "民國" after the label
-    const minguoIdx = rowXml.indexOf('民國', labelInRow);
-    if (minguoIdx < 0) return;
-
-    // Find the spaces before 年 and replace with year
-    // Pattern: "    年  " → "113年  " or similar
-    const yearCellStart = rowXml.indexOf('<w:tc>', minguoIdx);
-    if (yearCellStart > 0) {
-      // The year is in the text with spaces before 年
-      const afterMinguo = rowXml.indexOf('年', minguoIdx);
-      if (afterMinguo > 0) {
-        // Find the <w:t> containing the year spaces
-        const tStart = rowXml.lastIndexOf('<w:t', afterMinguo);
-        const tEnd = rowXml.indexOf('</w:t>', afterMinguo) + 6;
-        const tTag = rowXml.substring(tStart, tEnd);
-        // Replace leading spaces with ROC year
-        const newT = tTag.replace(/(\s*)年(\s*)/, rocYear + '年  ');
-        rowXml = rowXml.substring(0, tStart) + newT + rowXml.substring(tEnd);
-      }
+    const tcEnd = xml.indexOf('</w:tc>', labelIdx);
+    const cellStart = xml.indexOf('<w:tc>', tcEnd);
+    const cellEnd = xml.indexOf('</w:tc>', cellStart) + 7;
+    let cell = xml.substring(cellStart, cellEnd);
+    // Replace year: "    年" → "${rocYear}年"
+    cell = cell.replace(/(<w:t[^>]*>)\s+年/, '$1' + rocYear + '年');
+    // Replace month placeholder (first "   " between 年 and 月)
+    const yearPos = cell.indexOf(rocYear + '年');
+    const monthLabelPos = cell.indexOf('月', yearPos);
+    // Find the <w:t> with only spaces between 年 and 月
+    const segment = cell.substring(yearPos, monthLabelPos);
+    const spaceMatch = segment.match(/(<w:t[^>]*>)\s+(<\/w:t>)/);
+    if (spaceMatch) {
+      cell = cell.replace(spaceMatch[0], spaceMatch[1] + month + spaceMatch[2]);
     }
-
-    // Month: find spaces before 月 after the year
-    if (m) {
-      const monthArea = rowXml.indexOf('月', rowXml.indexOf(rocYear + '年'));
-      if (monthArea > 0) {
-        const prevTcEnd = rowXml.lastIndexOf('</w:tc>', monthArea);
-        const monthTcStart = rowXml.lastIndexOf('<w:tc>', monthArea);
-        const monthCell = rowXml.substring(monthTcStart, rowXml.indexOf('</w:tc>', monthTcStart));
-        // Find <w:t> with spaces in the cell before 月
-        const prevCellStart = rowXml.lastIndexOf('<w:tc>', monthTcStart - 1);
-        if (prevCellStart >= 0) {
-          const prevCellEnd = rowXml.indexOf('</w:tc>', prevCellStart);
-          let prevCell = rowXml.substring(prevCellStart, prevCellEnd);
-          const emptyRun = prevCell.match(/<w:r>(\s*<w:rPr>[\s\S]*?<\/w:rPr>\s*)<\/w:r>/);
-          if (emptyRun) {
-            const newRun = '<w:r>' + emptyRun[1] + '<w:t>' + String(parseInt(m)) + '</w:t></w:r>';
-            prevCell = prevCell.replace(emptyRun[0], newRun);
-            rowXml = rowXml.substring(0, prevCellStart) + prevCell + rowXml.substring(prevCellEnd);
-          }
-        }
-      }
+    // Replace day placeholder (first "   " between 月 and 日)
+    const newMonthPos = cell.indexOf('月', cell.indexOf(rocYear + '年'));
+    const dayLabelPos = cell.indexOf('日', newMonthPos);
+    const segment2 = cell.substring(newMonthPos, dayLabelPos);
+    const spaceMatch2 = segment2.match(/(<w:t[^>]*>)\s+(<\/w:t>)/);
+    if (spaceMatch2) {
+      cell = cell.replace(spaceMatch2[0], spaceMatch2[1] + day + spaceMatch2[2]);
     }
-
-    // Day: find spaces before 日 after the month
-    if (d) {
-      const dayArea = rowXml.indexOf('日', rowXml.indexOf('月', rowXml.indexOf(rocYear + '年')));
-      if (dayArea > 0) {
-        const dayTcStart = rowXml.lastIndexOf('<w:tc>', dayArea);
-        const prevCellStart = rowXml.lastIndexOf('<w:tc>', dayTcStart - 1);
-        if (prevCellStart >= 0) {
-          const prevCellEnd = rowXml.indexOf('</w:tc>', prevCellStart);
-          let prevCell = rowXml.substring(prevCellStart, prevCellEnd);
-          const emptyRun = prevCell.match(/<w:r>(\s*<w:rPr>[\s\S]*?<\/w:rPr>\s*)<\/w:r>/);
-          if (emptyRun) {
-            const newRun = '<w:r>' + emptyRun[1] + '<w:t>' + String(parseInt(d)) + '</w:t></w:r>';
-            prevCell = prevCell.replace(emptyRun[0], newRun);
-            rowXml = rowXml.substring(0, prevCellStart) + prevCell + rowXml.substring(prevCellEnd);
-          }
-        }
-      }
-    }
-
-    xml = xml.substring(0, trStart) + rowXml + xml.substring(trEnd);
+    xml = xml.substring(0, cellStart) + cell + xml.substring(cellEnd);
   }
 
   // 6. Fill radiologist name
