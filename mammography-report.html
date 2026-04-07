@@ -1143,7 +1143,8 @@ function generateReport() {
     lines.push('> Other findings: ' + (othersText || '(see form)'));
   }
 
-  if (!hasFindings && assocFindings.length === 0) {
+  const hasItem9 = document.getElementById('item9Check').checked;
+  if (!hasFindings && assocFindings.length === 0 && !hasItem9) {
     document.getElementById('reportOutput').value = '';
     return;
   }
