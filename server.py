@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, send_from_directory
 from flask_cors import CORS
 import sqlite3
 import json
@@ -323,6 +323,11 @@ def fill_pdf():
         as_attachment=True,
         download_name=fname
     )
+
+
+@app.route('/')
+def index():
+    return send_from_directory(os.path.dirname(os.path.abspath(__file__)), 'mammography-report.html')
 
 
 if __name__ == '__main__':
