@@ -1130,7 +1130,7 @@ function generateReport() {
 
   if (document.getElementById('item8Check').checked) {
     const side8 = getFieldValue('item8-side');
-    assocFindings.push((side8 ? formatSide(side8) + ' ' : '') + 'skin thickening');
+    assocFindings.push((side8 ? formatSide(side8) + ' ' : '') + 'diffuse skin thickening and increased density');
   }
 
   if (assocFindings.length > 0) {
@@ -1140,9 +1140,7 @@ function generateReport() {
   // Others
   if (document.getElementById('item9Check').checked) {
     const othersText = document.getElementById('othersText').value.trim();
-    if (othersText) {
-      lines.push('> Other findings: ' + othersText);
-    }
+    lines.push('> Other findings: ' + (othersText || '(see form)'));
   }
 
   if (!hasFindings && assocFindings.length === 0) {
@@ -1673,8 +1671,36 @@ async function _fillOnePdf(finding, formData, patientInfo) {
 
   const form = pdfDoc.getForm();
 
-  // 1. Checkboxes — check() activates the existing On appearance stream
-  const checks = Object.assign({ 'cat_0': true },
+  // 1. Checkboxes — explicitly uncheck all known fields first, then check selected ones
+  const ALL_CHECKBOX_FIELDS = [
+    'cat_0',
+    'mass','mass_rt','mass_lt','mass_multi_uni','mass_multi_bi',
+    'mass_uoq','mass_uiq','mass_loq','mass_liq','mass_subareolar','mass_axillary',
+    'mass_upper','mass_lower','mass_outer','mass_inner',
+    'mass_lt1','mass_1_2','mass_2_3','mass_3_4','mass_gt4',
+    'mass_round','mass_oval','mass_lobular','mass_irregular',
+    'mass_circumscribed','mass_microlobulated','mass_obscured','mass_indistinct','mass_spiculated',
+    'mass_high_density','mass_equal_density','mass_low_density','mass_fat_containing',
+    'calc','calc_rt','calc_lt','calc_multi_uni','calc_multi_bi',
+    'calc_uoq','calc_uiq','calc_loq','calc_liq','calc_subareolar','calc_axillary',
+    'calc_upper','calc_lower','calc_outer','calc_inner',
+    'calc_grouped','calc_linear','calc_segmental','calc_regional','calc_diffuse',
+    'calc_amorphous','calc_coarse','calc_fine_pleo','calc_fine_linear',
+    'asym','asym_rt','asym_lt','asym_multi_uni','asym_multi_bi',
+    'asym_uoq','asym_uiq','asym_loq','asym_liq','asym_subareolar','asym_axillary',
+    'asym_upper','asym_lower','asym_outer','asym_inner',
+    'asym_asymmetry','asym_focal','asym_developing',
+    'distort','distort_rt','distort_lt','distort_multi_uni','distort_multi_bi',
+    'distort_uoq','distort_uiq','distort_loq','distort_liq','distort_subareolar','distort_axillary',
+    'distort_upper','distort_lower','distort_outer','distort_inner',
+    'item5','item5_rt','item5_lt',
+    'item6','item6_rt','item6_lt',
+    'item7','item7_rt','item7_lt',
+    'item8','item8_rt','item8_lt',
+    'item9','item9_rt','item9_lt',
+  ];
+  const allUnchecked = Object.fromEntries(ALL_CHECKBOX_FIELDS.map(f => [f, false]));
+  const checks = Object.assign(allUnchecked, { 'cat_0': true },
     finding && finding.type ? _pdfBuildFieldMap(finding, formData) : {},
     _pdfBuildAssocFields(formData));
   for (const [name, on] of Object.entries(checks)) {
