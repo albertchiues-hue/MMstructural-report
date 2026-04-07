@@ -1643,9 +1643,10 @@ function _pdfBuildFieldMap(finding, formData) {
   return fields;
 }
 
-function _pdfBuildAssocFields(formData) {
+function _pdfBuildAssocFields(formData, onlyItem) {
   const fields = {};
-  for (let i = 5; i <= 9; i++) {
+  const items = onlyItem != null ? [onlyItem] : [5, 6, 7, 8, 9];
+  for (const i of items) {
     if (formData[`item${i}-enabled`]) {
       fields[`item${i}`] = true;
       const side = formData[`item${i}-side`] || '';
@@ -1656,7 +1657,7 @@ function _pdfBuildAssocFields(formData) {
   return fields;
 }
 
-async function _fillOnePdf(finding, formData, patientInfo) {
+async function _fillOnePdf(finding, formData, patientInfo, { assocItem = null } = {}) {
   const { PDFDocument, PDFName, StandardFonts } = PDFLib;
 
   // Decode embedded base64 template
@@ -1708,7 +1709,7 @@ async function _fillOnePdf(finding, formData, patientInfo) {
   const allUnchecked = Object.fromEntries(ALL_CHECKBOX_FIELDS.map(f => [f, false]));
   const checks = Object.assign(allUnchecked, { 'cat_0': true },
     finding && finding.type ? _pdfBuildFieldMap(finding, formData) : {},
-    _pdfBuildAssocFields(formData));
+    assocItem != null ? _pdfBuildAssocFields(formData, assocItem) : {});
   for (const [name, on] of Object.entries(checks)) {
     try { const cb = form.getCheckBox(name); on ? cb.check() : cb.uncheck(); } catch(e) {}
   }
@@ -1764,7 +1765,7 @@ async function _fillOnePdf(finding, formData, patientInfo) {
     page.drawText(patientInfo.radiologist, { x: 365, y: 670, size: 10, ...cjkOpts });
 
   // 9. Others text (CJK) — "9. Others:" ends x=87.4, baseline y≈46
-  if (formData['item9-enabled'] && formData['item9-text'])
+  if (assocItem === 9 && formData['item9-enabled'] && formData['item9-text'])
     page.drawText(formData['item9-text'], { x: 95, y: 46, size: 10, ...cjkOpts });
 
   return pdfDoc.save();
@@ -1786,25 +1787,46 @@ async function downloadPDF() {
     radiologist: document.getElementById('radiologist').value  || '',
   };
 
-  // One PDF page per finding; if no findings yet, generate a blank form
-  const findingList = findings.length > 0 ? findings : [null];
-  const blobs = [];
+  // Collect which associated items are active
+  const activeAssocItems = [5,6,7,8,9].filter(i => formData[`item${i}-enabled`]);
 
   try {
-    for (let i = 0; i < findingList.length; i++) {
-      const pdfBytes = await _fillOnePdf(findingList[i], formData, patientInfo);
-      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-      blobs.push(blob);
+    const { PDFDocument } = PDFLib;
+    const mergedDoc = await PDFDocument.create();
 
-      const suffix = findingList.length > 1 ? `_${i+1}of${findingList.length}` : '';
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `MMReport_${patId}_${examDt}${suffix}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
+    // One page per main finding (no associated items)
+    for (const f of findings) {
+      const pdfBytes = await _fillOnePdf(f, formData, patientInfo);
+      const srcDoc = await PDFDocument.load(pdfBytes);
+      const [page] = await mergedDoc.copyPages(srcDoc, [0]);
+      mergedDoc.addPage(page);
     }
-    return blobs[0] || null;
+
+    // One page per associated finding / others item
+    for (const itemNum of activeAssocItems) {
+      const pdfBytes = await _fillOnePdf(null, formData, patientInfo, { assocItem: itemNum });
+      const srcDoc = await PDFDocument.load(pdfBytes);
+      const [page] = await mergedDoc.copyPages(srcDoc, [0]);
+      mergedDoc.addPage(page);
+    }
+
+    // If nothing at all, generate a blank form
+    if (findings.length === 0 && activeAssocItems.length === 0) {
+      const pdfBytes = await _fillOnePdf(null, formData, patientInfo);
+      const srcDoc = await PDFDocument.load(pdfBytes);
+      const [page] = await mergedDoc.copyPages(srcDoc, [0]);
+      mergedDoc.addPage(page);
+    }
+
+    const mergedBytes = await mergedDoc.save();
+    const blob = new Blob([mergedBytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `MMReport_${patId}_${examDt}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+    return blob;
   } catch (err) {
     console.error('PDF generation error:', err);
     showStatus('PDF generation failed: ' + err.message, 'error');
