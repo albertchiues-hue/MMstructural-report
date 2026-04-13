@@ -88,6 +88,7 @@ h1 { text-align: center; margin-bottom: 20px; font-size: 1.4em; color: #1a1a2e; 
         <option value="游勝嵐醫師">游勝嵐醫師</option>
       </select>
     </div>
+    <div class="form-group"><label>放射師</label><input type="text" id="technician"></div>
   </div>
 </div>
 
@@ -220,9 +221,11 @@ function getUrlParams() {
     patientId:       p.get('pid') || '',
     patientName:     p.get('pname') || p.get('p_name') || '',
     examDate:        p.get('examdate') || '',
-    doctorName:      p.get('d_name') || '',
+    nationalId:      p.get('gid') || '',
+    birthDate:       p.get('birthday') || '',
+    doctorName:      p.get('doctor') || p.get('d_name') || '',
     doctorId:        p.get('d_id') || '',
-    techName:        p.get('t_name') || '',
+    techName:        p.get('technician') || p.get('t_name') || '',
   };
 }
 
@@ -514,18 +517,36 @@ function restoreAssocItem(itemName, fd) {
 // ===== Init from URL params + auto-load =====
 async function initFromUrlParams() {
   const params = getUrlParams();
+  // Normalize date string: YYYYMMDD or YYYY.MM.DD or YYYY-MM-DD → YYYY-MM-DD
+  function normalizeDate(d) {
+    if (!d) return '';
+    d = d.replace(/\./g, '-');
+    if (/^\d{8}$/.test(d)) return d.slice(0,4) + '-' + d.slice(4,6) + '-' + d.slice(6,8);
+    return d;
+  }
   // Pre-fill patient info from URL params
   if (params.patientId)   document.getElementById('patientId').value = params.patientId;
   if (params.patientName) document.getElementById('patientName').value = params.patientName;
-  if (params.examDate) {
-    // Convert YYYY.MM.DD to YYYY-MM-DD for date input
-    const normalized = params.examDate.replace(/\./g, '-');
-    document.getElementById('examDate').value = normalized;
-  }
+  if (params.nationalId)  document.getElementById('nationalId').value = params.nationalId;
+  if (params.birthDate)   document.getElementById('birthDate').value = normalizeDate(params.birthDate);
+  if (params.examDate)    document.getElementById('examDate').value = normalizeDate(params.examDate);
+  if (params.techName)    document.getElementById('technician').value = params.techName;
   if (params.doctorName) {
     const sel = document.getElementById('radiologist');
+    // Try matching option value, then try matching by text content
+    let found = false;
     for (let i = 0; i < sel.options.length; i++) {
-      if (sel.options[i].value === params.doctorName) { sel.selectedIndex = i; break; }
+      if (sel.options[i].value === params.doctorName || sel.options[i].textContent.includes(params.doctorName)) {
+        sel.selectedIndex = i; found = true; break;
+      }
+    }
+    // If not in dropdown, add as new option
+    if (!found && params.doctorName) {
+      const opt = document.createElement('option');
+      opt.value = params.doctorName;
+      opt.textContent = params.doctorName;
+      sel.appendChild(opt);
+      sel.value = params.doctorName;
     }
   }
 
